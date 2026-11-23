@@ -1,0 +1,18 @@
+{
+  "name": "ascend-demo-funnel",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@growthbook/growthbook-react": "^2.2.0",
+    "mixpanel-browser": "^2.86.0",
+    "next": "^15.5.29",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "stripe": "^23.2.0"
+  }
+}

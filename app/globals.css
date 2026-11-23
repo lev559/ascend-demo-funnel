@@ -1,0 +1,33 @@
+:root { --g: #0f6b4f; --g2: #e7f3ee; --ink: #1f2933; --muted: #6b7280; --line: #e5e7eb; --bg: #f7f6f1; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+.demo-bar { background: #1f2933; color: #fff; font-size: 12px; text-align: center; padding: 6px 12px; }
+.wrap { max-width: 440px; margin: 0 auto; padding: 28px 18px 48px; display: flex; flex-direction: column; gap: 12px; min-height: 80vh; }
+.center { justify-content: center; text-align: center; }
+.eyebrow { color: var(--g); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+h1 { font-size: 30px; line-height: 1.15; } h2 { font-size: 23px; line-height: 1.25; margin-bottom: 4px; }
+.lead { color: #4b5563; font-size: 15px; line-height: 1.5; }
+.fine { color: var(--muted); font-size: 12px; line-height: 1.45; }
+.btn { background: var(--g); color: #fff; border: 0; border-radius: 12px; height: 52px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 6px; }
+.btn:disabled { opacity: .6; }
+.opt { background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 15px 16px; text-align: left; font-size: 15px; cursor: pointer; }
+.opt:hover { border-color: var(--g); background: var(--g2); }
+.back { background: none; border: 0; color: var(--muted); font-size: 14px; margin-top: 6px; cursor: pointer; }
+.input { width: 100%; height: 50px; border: 1.5px solid var(--line); border-radius: 12px; padding: 0 14px; font-size: 16px; margin: 4px 0; }
+.bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; } .bar div { height: 100%; background: var(--g); transition: width .2s; }
+.bar.big { height: 10px; margin: 16px 0; }
+.ticks { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 6px 0; }
+.ticks li { background: #fff; border-radius: 12px; padding: 12px 14px 12px 38px; position: relative; font-size: 15px; }
+.ticks li::before { content: "✓"; position: absolute; left: 14px; color: var(--g); font-weight: 700; }
+.card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid var(--line); }
+.road { display: flex; flex-direction: column; gap: 10px; }
+.road div { display: grid; grid-template-columns: 64px 1fr; gap: 8px; font-size: 14px; } .road b { color: var(--g); }
+.plan { position: relative; display: flex; justify-content: space-between; align-items: center; background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px; cursor: pointer; }
+.plan.on { border-color: var(--g); background: var(--g2); }
+.plan small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; font-weight: 400; }
+.pd { text-align: right; font-weight: 700; font-size: 18px; }
+.tag { position: absolute; top: -10px; left: 14px; background: var(--g); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.test { border: 1.5px dashed #b45309; background: #fff8ef; }
+.price { font-size: 26px; font-weight: 700; } .price s { color: var(--muted); font-size: 18px; font-weight: 400; } .price small { font-size: 13px; color: var(--muted); font-weight: 400; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--g); border-radius: 50%; animation: s 1s linear infinite; margin: 40vh auto 0; }
+@keyframes s { to { transform: rotate(360deg); } }

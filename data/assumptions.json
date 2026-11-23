@@ -1,0 +1,56 @@
+{
+ "angle_mix": {
+  "procrastination": 0.4,
+  "career": 0.3,
+  "confidence": 0.2,
+  "default": 0.1
+ },
+ "start_quiz": {
+  "procrastination": 0.62,
+  "career": 0.57,
+  "confidence": 0.5,
+  "default": 0.45
+ },
+ "step_continue": [
+  0.95,
+  0.94,
+  0.96,
+  0.95,
+  0.97,
+  0.96,
+  0.97,
+  0.8
+ ],
+ "build_to_paywall": 0.96,
+ "paywall_to_checkout": {
+  "control": 0.12,
+  "plan_preview": 0.136
+ },
+ "checkout_to_purchase": 0.7,
+ "plan_mix": {
+  "control": {
+   "1w": 0.47,
+   "4w": 0.38,
+   "12w": 0.15
+  },
+  "plan_preview": {
+   "1w": 0.41,
+   "4w": 0.43,
+   "12w": 0.16
+  }
+ },
+ "upsell_take": {
+  "single": 0.19,
+  "bundle": 0.145
+ },
+ "country_mix": {
+  "US": 0.72,
+  "GB": 0.1,
+  "CA": 0.09,
+  "AU": 0.09
+ },
+ "os_mix": {
+  "iOS": 0.62,
+  "Android": 0.38
+ }
+}
