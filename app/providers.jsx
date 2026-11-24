@@ -3,20 +3,21 @@ import { useEffect, useMemo, useState } from "react";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { OFFLINE_FEATURES, ANGLES } from "../lib/funnel";
 import { getUserId, initAnalytics, track } from "../lib/analytics";
+import { PUBLIC } from "../lib/config";
 
 function readAngle() {
   const p = new URLSearchParams(window.location.search);
   const a = p.get("angle") || p.get("utm_content");
-  if (a && ANGLES[a]) { sessionStorage.setItem("ascend_angle", a); return a; }
-  return sessionStorage.getItem("ascend_angle") || "default";
+  if (a && ANGLES[a]) { sessionStorage.setItem("duskwise_angle", a); return a; }
+  return sessionStorage.getItem("duskwise_angle") || "default";
 }
 
 export default function Providers({ children }) {
   const [ready, setReady] = useState(false);
   const gb = useMemo(() => {
-    const key = process.env.NEXT_PUBLIC_GROWTHBOOK_CLIENT_KEY;
+    const key = PUBLIC.growthbookKey;
     return new GrowthBook({
-      apiHost: process.env.NEXT_PUBLIC_GROWTHBOOK_API_HOST || "https://cdn.growthbook.io",
+      apiHost: PUBLIC.growthbookHost,
       clientKey: key || undefined,
       features: key ? undefined : OFFLINE_FEATURES,
       // Exposure event in the format GrowthBook's Mixpanel data source expects
@@ -34,7 +35,7 @@ export default function Providers({ children }) {
     initAnalytics(id, { angle, ...utm });
     gb.setAttributes({ id, angle, ...utm });
     const done = () => setReady(true);
-    if (process.env.NEXT_PUBLIC_GROWTHBOOK_CLIENT_KEY) gb.init({ timeout: 2000 }).finally(done);
+    if (PUBLIC.growthbookKey) gb.init({ timeout: 2000 }).finally(done);
     else done();
   }, [gb]);
 

@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useFeatureValue } from "@growthbook/growthbook-react";
-import { UPSELLS, PLANS } from "../../lib/funnel";
+import { UPSELLS, ALL_PLANS } from "../../lib/funnel";
 import { track } from "../../lib/analytics";
 
 function Upsell() {
@@ -15,8 +15,8 @@ function Upsell() {
   useEffect(() => {
     // Purchase coming back from Stripe Checkout (test mode). In production this is confirmed by a Stripe webhook, not the browser.
     if (q.get("session_id") && !sessionStorage.getItem("tracked_" + q.get("session_id"))) {
-      const p = PLANS.find((x) => x.id === q.get("plan"));
-      track("purchase_completed", { plan: p?.id, revenue: p?.price, mode: "stripe_test" });
+      const p = ALL_PLANS.find((x) => x.id === q.get("plan"));
+      track("purchase_completed", { plan: p?.id, revenue: p?.trialDays ? 0 : p?.price, mode: "stripe_test" });
       sessionStorage.setItem("tracked_" + q.get("session_id"), "1");
     }
     track("upsell_viewed", { offer: offer.id, variant });
@@ -29,8 +29,8 @@ function Upsell() {
   };
 
   return (
-    <main className="wrap">
-      <p className="eyebrow">Payment successful · one more thing</p>
+    <main className="screen">
+      <span className="label">PAYMENT SUCCESSFUL · ONE MORE THING</span>
       <h2>{offer.title}</h2>
       <ul className="ticks">{offer.items.map((x) => <li key={x}>{x}</li>)}</ul>
       <p className="price">${offer.price.toFixed(2)} {offer.was && <s>${offer.was.toFixed(2)}</s>} <small>one-time</small></p>
@@ -38,7 +38,7 @@ function Upsell() {
         <div className="card test"><b>Test checkout</b><p className="fine">Simulated one-time payment, no card details collected.</p>
           <button className="btn" onClick={() => { track("upsell_purchased", { offer: offer.id, revenue: offer.price, variant, mode: "demo" }); router.push("/done"); }}>Simulate payment of ${offer.price.toFixed(2)}</button></div>
       )}
-      <button className="back" onClick={() => { track("upsell_declined", { offer: offer.id, variant }); router.push("/done"); }}>No thanks, continue to my plan</button>
+      <button className="link" onClick={() => { track("upsell_declined", { offer: offer.id, variant }); router.push("/done"); }}>No thanks, continue to my plan</button>
     </main>
   );
 }

@@ -16,9 +16,9 @@ function Done() {
     track("onboarding_reached");
   }, []);
   return (
-    <main className="wrap center">
-      <h2>You're all set</h2>
-      <p className="lead">In the real product this is where the app download and the first coaching session would start.</p>
+    <main className="screen night center">
+      <h1>You're all set.</h1>
+      <p className="lead">In the real product this is where you download the app and your coach picks up the conversation where you left it.</p>
       <p className="fine">This funnel is a portfolio demo. Nothing was charged.</p>
     </main>
   );

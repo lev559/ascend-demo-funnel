@@ -1,21 +1,23 @@
-# Ascend — demo web2app funnel with A/B testing stack
+# Duskwise — demo web2app funnel for an AI coach, with an A/B testing stack
 
-A portfolio project: a quiz → paywall → upsell funnel for a made-up AI-coach subscription, wired to the
-tools a growth / product marketing team uses every day. **Not a real product. Payments run in Stripe test mode only.
-The experiment data in `data/` is simulated** (see `scripts/simulate_traffic.py`).
+A portfolio project: quiz → coach match → mini-chat with the coach → plan → paywall → upsell, for a made-up AI-coach
+subscription ("the coach that remembers your week and tells you what can wait"), wired to the tools a growth team uses.
+**Not a real product. Payments run in Stripe test mode only. The experiment data in `data/` is simulated.**
 
 | Layer | Tool | Where in the code |
 | --- | --- | --- |
-| Funnel (quiz, paywall, upsell) | Next.js 15 on Vercel | `app/page.jsx`, `app/upsell/page.jsx`, content in `lib/funnel.js` |
-| Experiments | GrowthBook (feature flags + experiment rules) | `app/providers.jsx`, features `paywall-layout`, `upsell-offer` |
-| Product analytics | Mixpanel | `lib/analytics.js` (one `track()` for everything) |
-| Ad tracking | Google Tag Manager → Meta Pixel / GA4 | `app/layout.jsx` (every event is also pushed to `dataLayer`) |
-| Payments | Stripe Checkout, test mode | `app/api/checkout/route.js` |
-| Creative angles | `?angle=procrastination|career|confidence` swaps the first screen | `ANGLES` in `lib/funnel.js` |
-| Simulated traffic + read-out | Python, DuckDB | `scripts/` |
+| Funnel | Next.js 15 on Vercel | `app/page.jsx` (all screens), content in `lib/funnel.js`, brand tokens in `app/globals.css` |
+| Coach chat | Scripted by default, LLM optional (Cloudflare Workers AI) | `lib/coaches.js`, `lib/safety.js`, `app/api/coach/route.js` |
+| Experiments | GrowthBook | features `quiz-length`, `paywall-model`, `chat-mode`, `upsell-offer` (`lib/funnel.js` has offline defaults) |
+| Product analytics | Mixpanel (EU) | `lib/analytics.js` (one `track()` for everything) |
+| Ad tracking | GTM → Meta Pixel / GA4 | `app/layout.jsx` (every event is also pushed to `dataLayer`) |
+| Payments | Stripe Checkout, test mode | `app/api/checkout/route.js` (weekly plans or annual with 7-day trial) |
+| Creative angles | `?angle=overload|sunday|start|lost|private|voice` | `ANGLES` in `lib/funnel.js` |
+| Public IDs | Mixpanel token, GrowthBook client key, GTM ID, LLM endpoint | `lib/config.js` (env vars override) |
 
-Without any keys the funnel still works: experiments are assigned locally, events are printed to the browser console,
-and checkout shows a "simulate payment" screen.
+Secrets live only in Vercel environment variables: `LLM_API_KEY` (Cloudflare token) and `STRIPE_SECRET_KEY` (`sk_test_…`).
+Without any keys the funnel still works: experiments are assigned locally, events go to the browser console,
+the chat is scripted and checkout shows a "simulate payment" screen.
 
 ## Run locally
 
@@ -71,3 +73,17 @@ npm run dev                  # http://localhost:3000/?angle=procrastination
 python3 scripts/simulate_traffic.py   # 3 weeks of simulated traffic, assumptions in data/assumptions.json
 python3 scripts/analyse.py            # funnel, angles, both tests with confidence intervals, charts in charts/
 ```
+
+## Coach chat: scripted by default, LLM optional
+
+Screen 5 of the funnel is a 3-message chat with the matched coach (`lib/coaches.js`, `app/api/coach/route.js`).
+
+| Turn | What the coach says | Source |
+| --- | --- | --- |
+| 1 | Opener: "what's the heaviest thing on your plate this week?" | script, per coach |
+| 2 | Repeats back what the user wrote + names one thing for tonight + what can wait | LLM if configured, else script |
+| 3 | "How long can you give it tonight?" + quick replies | script |
+
+Safety: every user message goes through `lib/safety.js` first. Crisis language stops coaching and shows help lines (988 in the US, Samaritans 116 123 in the UK/IE, findahelpline.com). Model replies that are too long, contain links or mention diagnoses/medication are replaced by the scripted line. A 2.5 s timeout or any provider error also falls back to the script, so the funnel never waits on the model.
+
+Turn on LLM mode with three environment variables (any OpenAI-compatible endpoint): `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`. Track `chat_mode` (`scripted | llm | fallback | safety`) in Mixpanel to A/B test scripted vs LLM.
