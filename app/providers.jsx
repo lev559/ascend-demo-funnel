@@ -35,7 +35,14 @@ export default function Providers({ children }) {
     initAnalytics(id, { angle, ...utm });
     gb.setAttributes({ id, angle, ...utm });
     const done = () => setReady(true);
-    if (PUBLIC.growthbookKey) gb.init({ timeout: 2000 }).finally(done);
+    // Live mode: features come from GrowthBook. Any experiment not (yet) set up there, or a timeout,
+    // falls back to the same split assigned locally, so the funnel never loses an experiment.
+    const fillMissing = () => {
+      const live = gb.getFeatures() || {};
+      const missing = Object.fromEntries(Object.entries(OFFLINE_FEATURES).filter(([k]) => !live[k]));
+      if (Object.keys(missing).length) gb.setFeatures({ ...live, ...missing });
+    };
+    if (PUBLIC.growthbookKey) gb.init({ timeout: 2000 }).then(fillMissing, fillMissing).finally(done);
     else done();
   }, [gb]);
 
