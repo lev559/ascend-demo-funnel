@@ -44,7 +44,7 @@ export async function POST(req) {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${LLM_API_KEY}` },
       body: JSON.stringify({
         model: LLM_MODEL,
-        max_tokens: 120,
+        max_tokens: 160,
         temperature: 0.6,
         messages: [
           { role: 'system', content: systemPrompt(coachId) },
