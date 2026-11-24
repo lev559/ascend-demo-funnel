@@ -11,7 +11,7 @@ import { LLM } from '../../../lib/config';
 // chat endpoint works (Cloudflare Workers AI, OpenRouter, Groq, Gemini's OpenAI endpoint).
 // The key stays on the server; the browser never sees it.
 
-const TIMEOUT_MS = 2500;
+const TIMEOUT_MS = 4000;
 
 export async function POST(req) {
   let body = {};
@@ -53,13 +53,13 @@ export async function POST(req) {
       }),
     });
     clearTimeout(timer);
-    if (!r.ok) throw new Error(`LLM ${r.status}`);
+    if (!r.ok) return NextResponse.json({ text: fallback, mode: 'fallback', reason: `http ${r.status}`, model: LLM_MODEL });
     const data = await r.json();
     const text = (data?.choices?.[0]?.message?.content || '').trim().replace(/^"|"$/g, '');
-    if (!isSafeReply(text)) return NextResponse.json({ text: fallback, mode: 'fallback' });
+    if (!isSafeReply(text)) return NextResponse.json({ text: fallback, mode: 'fallback', reason: text ? `unsafe (${text.length} chars)` : 'empty', model: LLM_MODEL });
     return NextResponse.json({ text, mode: 'llm' });
-  } catch {
+  } catch (e) {
     // timeout, rate limit (429), provider down: the user still gets a good scripted line
-    return NextResponse.json({ text: fallback, mode: 'fallback' });
+    return NextResponse.json({ text: fallback, mode: 'fallback', reason: e?.name === 'AbortError' ? 'timeout' : 'network', model: LLM_MODEL });
   }
 }
