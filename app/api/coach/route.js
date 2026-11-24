@@ -55,7 +55,7 @@ export async function POST(req) {
     clearTimeout(timer);
     if (!r.ok) return NextResponse.json({ text: fallback, mode: 'fallback', reason: `http ${r.status}`, model: LLM_MODEL });
     const data = await r.json();
-    const text = (data?.choices?.[0]?.message?.content || '').trim().replace(/^"|"$/g, '');
+    const text = (data?.choices?.[0]?.message?.content || '').trim().replace(/^"|"$/g, '').replace(/^(Theo|Nora|Ines|Max):\s*/, '');
     if (!isSafeReply(text)) return NextResponse.json({ text: fallback, mode: 'fallback', reason: text ? `unsafe (${text.length} chars)` : 'empty', model: LLM_MODEL });
     return NextResponse.json({ text, mode: 'llm' });
   } catch (e) {
