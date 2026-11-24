@@ -1,0 +1,152 @@
+[
+ {
+  "coach": "theo",
+  "pile": "work",
+  "message": "Too many client emails and a report due Friday",
+  "reply": "Client emails everywhere and a report due Friday, that's a lot. Tonight, give the report 30 minutes; the emails can wait till tomorrow morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 1.65,
+  "words": 24
+ },
+ {
+  "coach": "theo",
+  "pile": "family",
+  "message": "My mom is sick, kids have exams and I haven't started the tax forms",
+  "reply": "Your mom's health and the kids' exams are a lot to handle right now. Tonight is for your family; give the tax forms 20 minutes on Saturday morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 2.83,
+  "words": 28
+ },
+ {
+  "coach": "theo",
+  "pile": "work",
+  "message": "3 meetings tomorrow and I haven't prepared any",
+  "reply": "Three meetings tomorrow and no prep done, that's a tough spot. Tonight, spend 20 minutes on the first meeting's prep; the other two can wait until tomorrow morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 1.63,
+  "words": 28
+ },
+ {
+  "coach": "theo",
+  "pile": "home",
+  "message": "the flat is a mess, laundry everywhere, fridge empty",
+  "reply": "Your flat's a mess with laundry everywhere and an empty fridge, that's overwhelming. Tonight, sort laundry for 20 minutes; the fridge can wait until tomorrow morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 2.56,
+  "words": 26
+ },
+ {
+  "coach": "theo",
+  "pile": "money",
+  "message": "rent is due, I need to call the bank and sort my budget",
+  "reply": "Rent due and budget to sort, that's a lot to handle. Tonight, call the bank for 20 minutes; sorting your budget can wait till tomorrow morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 1.46,
+  "words": 26
+ },
+ {
+  "coach": "theo",
+  "pile": "study",
+  "message": "exam on Monday, essay due Wednesday, I work weekends",
+  "reply": "Got an exam on Monday and an essay due Wednesday, that's tight with work on weekends. Tonight, study for the exam for 20 minutes; the essay can wait until Tuesday evening.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 2.31,
+  "words": 31
+ },
+ {
+  "coach": "theo",
+  "pile": "work",
+  "message": "idk everything",
+  "reply": "Everything's a bit unclear, that's okay. Tonight, take 10 minutes to jot down three work tasks that need doing; the rest can wait till morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 1.87,
+  "words": 25
+ },
+ {
+  "coach": "theo",
+  "pile": "health",
+  "message": "I want to start going to the gym but never find time",
+  "reply": "Finding time for the gym is tough, it's a big goal. Tonight, schedule 10 minutes to look up gym hours and classes; the actual workout can wait till tomorrow.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 1.57,
+  "words": 29
+ },
+ {
+  "coach": "theo",
+  "pile": "family",
+  "message": "my partner and I keep fighting about chores and I'm behind at work",
+  "reply": "Your partner and work are both stressing you out, that's tough. Tonight, take 20 minutes to make a list of chores; the work stuff can wait till tomorrow morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 1.41,
+  "words": 29
+ },
+ {
+  "coach": "theo",
+  "pile": "work",
+  "message": "launching a product next week, bugs, investors want an update",
+  "reply": "Launching a product next week with bugs to fix and investors wanting an update, that's a lot on your plate. Tonight, spend 20 minutes on the update for investors; the bugs can wait until tomorrow morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 2.16,
+  "words": 36
+ },
+ {
+  "coach": "nora",
+  "pile": "work",
+  "message": "I feel like I'm failing at everything and can't start",
+  "reply": "Feeling like you're failing at everything is really tough, and it's a lot to carry. Tonight, take 10 minutes to look at your work tasks; the feeling of being behind can wait.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 3.11,
+  "words": 32
+ },
+ {
+  "coach": "ines",
+  "pile": "home",
+  "message": "moving flats Saturday, work deadline Friday, sister's birthday Sunday",
+  "reply": "A move, a deadline, and your sister's birthday all at once. Tonight, spend 20 minutes on the deadline task, since it unlocks the rest; packing for the move can wait until tomorrow.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 2.03,
+  "words": 32
+ },
+ {
+  "coach": "max",
+  "pile": "work",
+  "message": "I keep postponing my portfolio for 3 weeks",
+  "reply": "You've been putting off your portfolio for 3 weeks, that's a lot of delay. Tonight, 20 minutes on one project description; the design tweaks can wait until your deadline.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 1.14,
+  "words": 29
+ },
+ {
+  "coach": "theo",
+  "pile": "work",
+  "message": "asdfgh",
+  "reply": "The one thing tonight: the work deadline. The inbox can wait.",
+  "mode": "fallback",
+  "reason": "timeout",
+  "sec": 4.16,
+  "words": 11
+ },
+ {
+  "coach": "theo",
+  "pile": "family",
+  "message": "dad in hospital, I have to cover his shop and my own job",
+  "reply": "Your dad's in hospital and you've got his shop and your job to handle, that's a tough spot. Tonight, spend 20 minutes on the shop's schedule for tomorrow; your own job tasks can wait till tomorrow morning.",
+  "mode": "llm",
+  "reason": null,
+  "sec": 2.24,
+  "words": 37
+ }
+]
