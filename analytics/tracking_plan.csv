@@ -1,0 +1,49 @@
+category,event,source,status,owner,trigger,properties,notes
+Acquisition,landing_viewed,web,live,Growth,Landing screen rendered for a new or reset session,,
+Onboarding quiz,quiz_started,web,live,Growth,Reason card tapped on the landing,reason (enum: overload|start|lost|talk); preselected (boolean); quiz_length (enum: short|long); entry_mode (enum: write|tap),
+Onboarding quiz,situation_written,web,live,Growth,Situation submitted (typed or tapped example),text_length (number); reason (enum: overload|start|lost|talk); how (enum: typed|example|tap); entry_mode (enum: write|tap),
+AI,coach_questions_generated,web,live,Growth,Model (or fallback) returned the situation questions,"mode (enum: llm|fallback|error); ms (number); n (number, optional); crisis (boolean, optional)",
+AI,questions_wait_shown,web,live,Growth,'Reading what you wrote' spinner shown because questions were not ready,ms (number),
+Onboarding quiz,interstitial_viewed,web,live,Growth,Reflection or summary screen shown,which (enum: reflection|summary),Renamed from breather_viewed (v2); Lexicon keeps the old name as an alias
+Onboarding quiz,quiz_step_completed,web,live,Growth,Any quiz question answered,step (number); step_id (string); quiz_length (enum: short|long),
+Onboarding quiz,name_submitted,web,live,Growth,First name entered,,Name itself is never sent
+Coach,coach_matched,web,live,Growth,Coach match screen shown after the voice question,coach (enum: nora|ines|max|theo),
+Coach,coach_switched,web,live,Growth,Person picked another coach on the match screen,coach (enum: nora|ines|max|theo),
+Coach,coach_message_shown,web,live,Growth,A coach message rendered in the funnel chat,coach (enum: nora|ines|max|theo); turn (number); mode (enum: llm|fallback|error); ms (number); chat_length (enum: 2|4),
+Coach,coach_reply_sent,web,live,Growth,Person sent a reply in the funnel chat,coach (enum: nora|ines|max|theo); turn (number); quick (boolean); chat_length (enum: 2|4),
+Coach,chat_completed,web,live,Growth,Last coach turn shown,coach (enum: nora|ines|max|theo); chat_length (enum: 2|4),
+AI,plan_generated,web,live,Growth,Personal plan returned,mode (enum: llm|fallback|error); ms (number),
+Onboarding quiz,loader_question_answered,web,live,Growth,Yes/no pop-up on the loader answered,q (string); a (enum: yes|no),Renamed from loader_answer (v2)
+Lead,email_viewed,web,live,Growth,Email screen shown,,
+Lead,email_submitted,web,live,Growth,Valid email submitted; fires identify(user_id) right after,marketing_opt_in (boolean),
+Plan,result_viewed,web,live,Growth,Plan screen shown,mode (enum: llm|fallback|error),
+Plan,commitment_signed,web,live,Growth,Press-and-hold on the deal screen completed,,Renamed from deal_signed (v2)
+Monetisation,paywall_viewed,web,live,Growth,Paywall shown to a first-time visitor,paywall_model (enum: weekly|annual_trial|downsell),
+Monetisation,downsell_viewed,web,live,Growth,Paywall shown to a returning visitor (downsell),paywall_model (enum: weekly|annual_trial|downsell),
+Monetisation,paywall_timer_expired,web,live,Growth,Intro-price timer reached zero on screen,,
+Monetisation,plan_selected,web,live,Growth,Plan card tapped,plan (enum: 1w|4w|12w|year|month|4w_back); paywall_model (enum: weekly|annual_trial|downsell),
+Monetisation,checkout_started,web,live,Growth,Redirect to Stripe Checkout,plan (enum: 1w|4w|12w|year|month|4w_back); price (number); paywall_model (enum: weekly|annual_trial|downsell); intro (boolean),
+Monetisation,checkout_abandoned,web,live,Growth,Returned from Stripe via cancel_url,plan (enum: 1w|4w|12w|year|month|4w_back),
+Monetisation,upsell_viewed,web,live,Growth,Upsell screen shown after purchase,offer (string); variant (enum: single|bundle),
+Monetisation,upsell_checkout_started,web,live,Growth,Upsell checkout opened,offer (string); price (number); variant (enum: single|bundle),
+Monetisation,upsell_declined,web,live,Growth,Upsell skipped,offer (string); variant (enum: single|bundle),
+Activation,onboarding_reached,web,live,Growth,Done screen with app download links shown,,
+Activation,app_download_clicked,web,live,Growth,Store badge tapped,store (enum: ios|android),
+UX,nav_back_clicked,web,live,Growth,Browser back inside the funnel,from (string),Renamed from browser_back (v2)
+Experiments,$experiment_started,web,live,Data,GrowthBook assigned the user to an experiment (once per experiment per user),"Experiment name (string); Variant name (string); variation_value (string, optional); assignment (enum, optional: test|holdout)",Name and props fixed by GrowthBook's Mixpanel integration
+Revenue,subscription_started,server,live,Data,Stripe checkout.session.completed (mode=subscription),plan (enum: 1w|4w|12w|year|month|4w_back); subscription_id (string); paywall_model (enum: weekly|annual_trial|downsell); revenue (number); intro (boolean); trial (boolean),Replaces client-side purchase_completed as the revenue event
+Revenue,trial_converted,server,live,Data,"First paid invoice after a trial (invoice.paid, billing_reason=subscription_cycle, period 1)",plan (enum: 1w|4w|12w|year|month|4w_back); subscription_id (string); paywall_model (enum: weekly|annual_trial|downsell); revenue (number),
+Revenue,subscription_renewed,server,live,Data,invoice.paid for a later period,plan (enum: 1w|4w|12w|year|month|4w_back); subscription_id (string); paywall_model (enum: weekly|annual_trial|downsell); revenue (number); period (number),
+Revenue,payment_failed,server,live,Data,invoice.payment_failed,plan (enum: 1w|4w|12w|year|month|4w_back); subscription_id (string); paywall_model (enum: weekly|annual_trial|downsell); attempt (number),
+Revenue,subscription_cancelled,server,live,Data,customer.subscription.updated with cancel_at_period_end=true,"plan (enum: 1w|4w|12w|year|month|4w_back); subscription_id (string); paywall_model (enum: weekly|annual_trial|downsell); period (number); reason (enum, optional: too_expensive|not_using|not_helpful|other|none)",Cancel intent; access continues to period end
+Revenue,subscription_ended,server,live,Data,customer.subscription.deleted,"plan (enum: 1w|4w|12w|year|month|4w_back); subscription_id (string); paywall_model (enum: weekly|annual_trial|downsell); periods_paid (number, optional)",
+Revenue,refund_issued,server,live,Data,charge.refunded,plan (enum: 1w|4w|12w|year|month|4w_back); amount (number); reason (enum: requested|duplicate|fraud|guarantee),
+Revenue,upsell_purchased,server,live,Data,checkout.session.completed (mode=payment) for an upsell,offer (string); revenue (number); variant (enum: single|bundle),Moves from the client to the webhook
+Revenue,purchase_completed,web,deprecated,Growth,Success page after Stripe (client),plan (enum: 1w|4w|12w|year|month|4w_back); revenue (number); currency (string); trial (boolean); intro (boolean),"Kept one release for comparison with subscription_started, then hidden in Lexicon"
+Activation,app_opened,app,spec,App,App launched; first launch carries first_open=true,first_open (boolean),Specified for the app; present in simulated data only
+Activation,app_login,app,spec,App,Signed in with the web email (magic link); calls identify(user_id) so web and app join,,Specified for the app; present in simulated data only
+Engagement,coach_session_started,app,spec,App,Chat with the coach opened and first message sent,coach (enum: nora|ines|max|theo),Specified for the app; present in simulated data only
+Engagement,plan_step_completed,app,spec,App,A day in the 7-day plan marked done,day (number); plan_week (number),Specified for the app; present in simulated data only
+Engagement,checkin_answered,app,spec,App,Reply to a scheduled check-in,slot (enum: morning|evening|sunday),Specified for the app; present in simulated data only
+Engagement,weekly_review_completed,app,spec,App,Sunday review finished,week (number),Specified for the app; present in simulated data only
+Safety,crisis_flagged,server,live,Trust & Safety,Crisis regex or model RISK flag fired (no text stored),source (enum: regex|model); surface (enum: questions|chat|plan|app),

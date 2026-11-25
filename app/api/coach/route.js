@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { serverTrack } from '../../../lib/mpServer';
 import { allowModelCall } from '../../../lib/ratelimit';
 import { COACHES } from '../../../lib/coaches';
 import { callLLM, parseJSON, hasLLM, reason as why } from '../../../lib/llm';
@@ -17,7 +18,7 @@ export async function POST(req) {
   const turn = Math.min(Math.max(Number(body.turn) || 1, 1), max);
   const history = (Array.isArray(body.history) ? body.history : []).map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '').slice(0, 600) }));
   const last = [...history].reverse().find((m) => m.role === 'user');
-  if (last && isCrisis(last.content)) return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' });
+  if (last && isCrisis(last.content)) { await serverTrack('crisis_flagged', { userId: body.uid, deviceId: body.did }, { source: 'regex', surface: 'chat' }); return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' }); }
 
   const fb = () => fallbackChat(coachId, turn, max, ctx.name || 'there');
   if (!hasLLM()) return NextResponse.json({ ...fb(), mode: 'fallback', reason: 'no key' });
@@ -26,7 +27,7 @@ export async function POST(req) {
   try {
     const raw = await callLLM(chatPrompt(ctx, coachId, history, turn, max), { maxTokens: 260, timeout: 9000 });
     let text = raw, replies = [];
-    if (/^\s*RISK\b/.test(raw)) return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' });
+    if (/^\s*RISK\b/.test(raw)) { await serverTrack('crisis_flagged', { userId: body.uid, deviceId: body.did }, { source: 'model', surface: 'chat' }); return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' }); }
     const m = raw.match(/\n\s*REPLIES:\s*(.+)\s*$/i);
     if (m) { replies = m[1].split('|').map((x) => x.trim()).filter(Boolean); text = raw.slice(0, m.index); }
     try { if (text.trim().startsWith('{')) { const j = parseJSON(text); text = j.text || text; replies = j.replies || replies; } } catch {}

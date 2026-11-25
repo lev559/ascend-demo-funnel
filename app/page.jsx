@@ -4,13 +4,13 @@ import { useRouter } from "next/navigation";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { REASONS, ANGLES, questionsFor, dynamicCount, coachFromAnswers, PAYWALLS, DOWNSELL, OFFER_MINUTES, perDay, renewalDate, money } from "../lib/funnel";
 import { COACHES, whyCoach } from "../lib/coaches";
-import { track } from "../lib/analytics";
+import { track, identifyUser, getKnownUserId, getDeviceId, getExperiments } from "../lib/analytics";
 import { ReasonArt, CoachAvatar, OptArt } from "./art";
 
 const KEY = "dw_state";
 const loadState = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
 const saveState = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
-const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
+const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, did: getDeviceId(), uid: getKnownUserId() }) }).then((r) => r.json());
 const P1 = ["age", "since", "tried", "stuck", "overthink", "energy", "support"];
 // Situation questions are generated in the background while the person answers the general ones.
 const pending = {};
@@ -47,6 +47,8 @@ export default function Funnel() {
       } catch {}
       window.history.replaceState(null, "", window.location.pathname);
     }
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get("checkout") === "cancelled") { track("checkout_abandoned", { plan: qs.get("plan") }); window.history.replaceState(null, "", window.location.pathname); }
     const st = loadState();
     let back = false;
     try { back = !sessionStorage.getItem("dw_session") && st.stage === "paywall" && !st.paid; sessionStorage.setItem("dw_session", "1"); } catch {}
@@ -68,7 +70,7 @@ export default function Funnel() {
       else if (cur.stage === "deal") setS((p) => ({ ...p, stage: "plan2" }));
       else if (prev) setS((p) => ({ ...p, ...prev }));
       else window.history.pushState({ dw: "stay" }, "");
-      track("browser_back", { from: cur.stage });
+      track("nav_back_clicked", { from: cur.stage });
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -110,7 +112,7 @@ export default function Funnel() {
   if (s.stage === "write") return (
     <Write reason={s.reason} initial={s.text} mode={entryMode} onBack={() => up({ stage: "landing" })}
       onDone={(text, how) => {
-        track("situation_written", { length: text.length, reason: s.reason, how, entry_mode: entryMode });
+        track("situation_written", { text_length: text.length, reason: s.reason, how, entry_mode: entryMode });
         fetchQuestions({ name: s.name, reason: s.reason, text, general: s.general || {} }, dynamicCount(quizLength))
           .then((r) => (r.crisis ? up({ stage: "crisis", crisis: r.text }) : up({ dyn: r })));
         up({ stage: "quiz", idx: 0, text, dyn: null, dynA: [] });
@@ -226,8 +228,8 @@ export default function Funnel() {
       <h2>Want {COACHES[s.coachId].name}'s weekly notes by email?</h2>
       <p className="sub">One short email on Sundays: an idea to try and a question for the week. Unsubscribe in one click.</p>
       <div className="spacer" />
-      <button className="btn" onClick={() => { track("email_submitted", { marketing_opt_in: true }); up({ stage: "plan1", marketing: true }); }}>Yes, send them</button>
-      <button className="btn ghost" onClick={() => { track("email_submitted", { marketing_opt_in: false }); up({ stage: "plan1", marketing: false }); }}>No, thanks</button>
+      <button className="btn" onClick={() => { track("email_submitted", { marketing_opt_in: true }); identifyUser({ marketing_opt_in: true, reason: s.reason, coach: s.coachId, age_band: s.general?.age }); up({ stage: "plan1", marketing: true }); }}>Yes, send them</button>
+      <button className="btn ghost" onClick={() => { track("email_submitted", { marketing_opt_in: false }); identifyUser({ marketing_opt_in: false, reason: s.reason, coach: s.coachId, age_band: s.general?.age }); up({ stage: "plan1", marketing: false }); }}>No, thanks</button>
     </main></div>
   );
 
@@ -235,7 +237,7 @@ export default function Funnel() {
   if (!s.plan && ["plan1", "plan2", "deal", "paywall"].includes(s.stage)) return <PlanWait ctx={ctx} coachId={s.coachId} history={s.history || []} onPlan={(plan) => up({ plan })} />;
   if (s.stage === "plan1") return <Plan1 plan={s.plan} coach={COACHES[s.coachId]} name={s.name} onNext={() => up({ stage: "plan2" })} />;
   if (s.stage === "plan2") return <Plan2 plan={s.plan} coach={COACHES[s.coachId]} onNext={() => up({ stage: "deal" })} />;
-  if (s.stage === "deal") return <Deal plan={s.plan} coach={COACHES[s.coachId]} name={s.name} onDone={() => { track("deal_signed"); up({ stage: "paywall" }); }} />;
+  if (s.stage === "deal") return <Deal plan={s.plan} coach={COACHES[s.coachId]} name={s.name} onDone={() => { track("commitment_signed"); up({ stage: "paywall" }); }} />;
 
   /* ---- 10. Paywall ---- */
   return <Paywall s={s} returning={returning} router={router} onPaid={() => up({ paid: true })} />;
@@ -363,7 +365,7 @@ function Question({ q, value, onAnswer, onNext, Prog, name }) {
 }
 
 function Reflect({ dyn, Prog, onNext }) {
-  useEffectOnce(() => track("breather_viewed", { which: "reflection" }));
+  useEffectOnce(() => track("interstitial_viewed", { which: "reflection" }));
   const r = dyn.reflection || {};
   return (
     <div className="app dark"><main className="screen"><Prog />
@@ -376,7 +378,7 @@ function Reflect({ dyn, Prog, onNext }) {
 }
 
 function Summary({ ctx, general = {}, Prog, onNext }) {
-  useEffectOnce(() => track("breather_viewed", { which: "summary" }));
+  useEffectOnce(() => track("interstitial_viewed", { which: "summary" }));
   const lines = [
     ctx.text && `In your words: “${ctx.text.split(/[.!?\n]/)[0].slice(0, 90)}”`,
     ...ctx.dynamic.slice(0, 3).map((d) => `${d.label || "You said"}: ${d.a.charAt(0).toLowerCase() + d.a.slice(1)}`),
@@ -514,8 +516,8 @@ function Loader({ coach, ctx, coachId, history, time, onPlan, onAnswer, onDone }
           <div className="note">One quick question</div>
           <h3 style={{ marginTop: 8 }}>{pops[pop].q}</h3>
           <div className="two">
-            <button onClick={() => { onAnswer(pops[pop].k, "no"); track("loader_answer", { q: pops[pop].k, a: "no" }); setPop(null); }}>{pop === "a" ? "Not sure" : "Not now"}</button>
-            <button className="y" onClick={() => { onAnswer(pops[pop].k, "yes"); track("loader_answer", { q: pops[pop].k, a: "yes" }); setPop(null); }}>Yes</button>
+            <button onClick={() => { onAnswer(pops[pop].k, "no"); track("loader_question_answered", { q: pops[pop].k, a: "no" }); setPop(null); }}>{pop === "a" ? "Not sure" : "Not now"}</button>
+            <button className="y" onClick={() => { onAnswer(pops[pop].k, "yes"); track("loader_question_answered", { q: pops[pop].k, a: "yes" }); setPop(null); }}>Yes</button>
           </div>
         </div></div>
       )}
@@ -649,7 +651,7 @@ function Paywall({ s, returning, router, onPaid }) {
   const checkout = async () => {
     setBusy(true);
     track("checkout_started", { plan: p.id, price: today, paywall_model: returning ? "downsell" : model, intro });
-    const r = await post("/api/checkout", { kind: "plan", id: p.id, intro }).catch(() => ({}));
+    const r = await post("/api/checkout", { kind: "plan", id: p.id, intro, uid: getKnownUserId(true), did: getDeviceId(), paywall_model: returning ? "downsell" : model, exp: getExperiments() }).catch(() => ({}));
     if (r.url) { onPaid(); window.location.href = r.url; } else setBusy(false);
   };
   const scrollToPlans = () => plansRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });

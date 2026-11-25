@@ -3,7 +3,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { UPSELLS, ALL_PLANS, money } from "../../lib/funnel";
-import { track } from "../../lib/analytics";
+import { track, getKnownUserId, getDeviceId, getExperiments } from "../../lib/analytics";
 
 function Upsell() {
   const router = useRouter();
@@ -13,7 +13,8 @@ function Upsell() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    // Purchase coming back from Stripe Checkout. In production this is confirmed by a Stripe webhook, not the browser.
+    // Purchase coming back from Stripe Checkout. Revenue is recorded by the Stripe webhook (subscription_started);
+    // purchase_completed is the deprecated client event, kept one release to reconcile the two (tracking plan v3).
     const sid = q.get("session_id");
     if (sid && !sessionStorage.getItem("tracked_" + sid)) {
       const p = ALL_PLANS.find((x) => x.id === q.get("plan"));
@@ -28,7 +29,7 @@ function Upsell() {
   const accept = async () => {
     setBusy(true);
     track("upsell_checkout_started", { offer: offer.id, price: offer.price, variant });
-    const r = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "upsell", id: variant }) }).then((x) => x.json()).catch(() => ({}));
+    const r = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "upsell", id: variant, uid: getKnownUserId(), did: getDeviceId(), exp: getExperiments() }) }).then((x) => x.json()).catch(() => ({}));
     if (r.url) window.location.href = r.url; else setBusy(false);
   };
 

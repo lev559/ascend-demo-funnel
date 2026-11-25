@@ -5,26 +5,25 @@ const TRY = { rist: "/?fresh=1", open: "/?fresh=1&angle=private&case=open" };
 const linksFor = (v) => [
   ["Try the funnel", TRY[v]],
   ["Code on GitHub", "https://github.com/lev559/ascend-demo-funnel"],
-  ["Mixpanel board", "https://eu.mixpanel.com/p/7Wd8rnHJDtR5fccFHNMd6Z"],
-  ["Experiment read-out", "https://github.com/lev559/ascend-demo-funnel/blob/main/data/report.md"],
+  ["Analytics memos", "https://github.com/lev559/ascend-demo-funnel/tree/main/analytics"],
 ];
 
 const EXPERIMENTS = [
-  { key: "entry-mode", a: "write", b: "tap", hyp: "Tapping a typical situation first beats an empty text box on mobile paid traffic.",
-    metric: "Revenue per visitor", res: "$0.401 → $0.487 (+22%), p = 0.13", side: "Situation submitted 74% → 86% (p < 0.001)",
-    call: "Ship tap. The mechanism is strong and significant; revenue is directionally positive. Keep a holdout.", truth: "+7%" },
-  { key: "quiz-length", a: "short", b: "long", hyp: "A longer quiz loses people before the paywall but converts better on it.",
-    metric: "Revenue per visitor", res: "$0.381 → $0.506 (+33%), p = 0.03", side: "Paywall reach −8%, checkout on paywall +25%",
-    call: "Don't ship yet. The lift is far above the assumed +7%: classic winner's curse at this sample. Re-run.", truth: "+7%" },
-  { key: "chat-length", a: "2 turns", b: "4 turns", hyp: "A longer chat gives more value and lifts email and paywall conversion.",
-    metric: "Revenue per visitor", res: "$0.528 → $0.359 (−32%), p = 0.003", side: "Chat finished 80% → 60%; email +3pp among those who reach it",
-    call: "Keep 2 turns. Value in the chat doesn't pay for the people who drop out of it.", truth: "−13%" },
-  { key: "paywall-model", a: "weekly", b: "annual + 7-day trial", hyp: "An annual plan with a trial earns more per paywall viewer than weekly plans.",
-    metric: "Subscription revenue per viewer (matured trials)", res: "$2.75 → $4.98 (+81%), p < 0.001", side: "Revenue at purchase −68% (trials pay $0 up front)",
-    call: "Ship annual trial, but judge on 90-day LTV and refunds: weekly renewals aren't in this window.", truth: "+" },
-  { key: "upsell-offer", a: "single $9.99", b: "bundle $14.99", hyp: "A bigger bundle earns more per buyer than a single add-on.",
-    metric: "Upsell revenue per viewer", res: "$2.44 → $1.93 (−21%), p = 0.22", side: "Take rate 24% → 13%",
-    call: "Underpowered (≈250 buyers per arm). Keep running; don't call it.", truth: "+7%" },
+  { key: "entry-mode", a: "write", b: "tap", when: "Jun", hyp: "Tapping a typical situation beats an empty text box on mobile.",
+    lead: "Situation submitted 45.8% → 51.8% (+13%, p < 0.001)", rev: "Revenue/visitor −7% [−54%, +41%]: unreadable, MDE 71%",
+    call: "Ship tap with a 5% holdout. The holdout is the revenue check." },
+  { key: "quiz-length", a: "short", b: "long", when: "Jul", hyp: "More context before the paywall converts better on it.",
+    lead: "Paywall reached 15.2% → 13.0% (−14%, p = 0.008)", rev: "Revenue/visitor −5%, not significant",
+    call: "Keep short. The cost is certain, the benefit isn't visible." },
+  { key: "chat-length", a: "2 turns", b: "4 turns", when: "Aug", hyp: "A longer chat gives more value and lifts email and paywall.",
+    lead: "Email given 16.3% → 12.8% (−21%, p < 0.001)", rev: "Revenue/visitor −35% [−69%, −1%], p = 0.04",
+    call: "Keep 2 turns. Value that costs completion loses money." },
+  { key: "paywall-model", a: "weekly", b: "annual + 7-day trial", when: "Sep–Oct", hyp: "An annual trial earns more per paywall viewer than weekly plans.",
+    lead: "Subscribed 10.6% → 12.3% (+16%, p = 0.20)", rev: "Revenue/viewer D30 +7%, not significant",
+    call: "Ship as a business call: blended CAC fell from $53 to $43. Holdout until Dec 12." },
+  { key: "upsell-offer", a: "single $9.99", b: "bundle $14.99", when: "Oct–Nov", hyp: "A bigger bundle earns more per buyer.",
+    lead: "Bought 20.1% → 16.2% (p = 0.38)", rev: "Revenue/viewer +21% [−33%, +75%]",
+    call: "Not called: 300 viewers, ~3,000 needed. Test a bigger change instead." },
 ];
 
 const PROMPT = [
@@ -116,34 +115,52 @@ export default function CaseStudy({ v = "rist" }) {
 
       <section>
         <h2>6. Behind the scenes</h2>
-        <p>The same five experiments live in GrowthBook (assignment) and Mixpanel (analysis). The Mixpanel board below is public and read-only: <a href="https://eu.mixpanel.com/p/7Wd8rnHJDtR5fccFHNMd6Z" target="_blank" rel="noreferrer">open it</a>.</p>
-        <figure className="c-wide"><img src="/case/mixpanel.webp" alt="Mixpanel board: main funnel and one funnel per experiment" loading="lazy" /><figcaption>Mixpanel: the main funnel and one funnel per experiment, split by variant (simulated data)</figcaption></figure>
-        <figure className="c-wide"><img src="/case/growthbook.webp" alt="GrowthBook: five running experiments" loading="lazy" /><figcaption>GrowthBook: five experiments running as feature-flag rules, 50/50 by user id</figcaption></figure>
+        <ul>
+          <li><b>GrowthBook</b> assigns each test as a feature-flag rule (50/50 by anonymous id) and sends the exposure to Mixpanel as <code>$experiment_started</code>; the variant also rides on every later event as <code>exp_*</code>.</li>
+          <li><b>Mixpanel</b> has separate prod and dev projects (EU), Simplified ID Merge, and a Lexicon generated from the tracking plan.</li>
+          <li><b>Stripe</b> carries the user id and variants in metadata, so webhook revenue lands on the same person and the same test arm.</li>
+          <li><b>Checks</b>: the tracking-plan validator and the daily anomaly rule run on the export.</li>
+        </ul>
       </section>
 
       <section>
-        <h2>7. Five experiments, read out</h2>
-        <p className="c-note">The site has almost no real traffic, so I simulated 3 weeks of paid social (28K visitors, 447K events) with assumed “true” effects, loaded it into Mixpanel and analysed it like real data. The point is the method: because I know the truth, I can see where the read-out misleads.</p>
+        <h2>7. Six months of experiments, one at a time</h2>
+        <p className="c-note">The site has almost no real traffic, so I simulated six months of it (Jun–Nov 2026: 56K visitors, 714K events, 1,000 subscribers with renewals, refunds and app usage) with known “true” effects, and analysed it like real data. Simulated numbers are labelled everywhere.</p>
+        <p>At ~300 visitors a day, a 4-week test can't detect less than a 50–70% change in revenue per visitor. So each test was decided on a pre-registered leading indicator, with revenue as a guardrail and a 5% holdout after shipping.</p>
+        <figure className="c-wide"><img src="/case/a_experiments.webp" alt="Five tests: lift with 95% confidence intervals for revenue and for the leading indicator" loading="lazy" /></figure>
         <div className="c-exps">{EXPERIMENTS.map((x) => (
           <div className="c-exp" key={x.key}>
-            <div className="c-exp-h"><code>{x.key}</code><span>{x.a} vs {x.b}</span></div>
+            <div className="c-exp-h"><code>{x.key}</code><span>{x.a} vs {x.b} · {x.when}</span></div>
             <p><i>{x.hyp}</i></p>
-            <p><b>{x.metric}:</b> {x.res}</p>
-            <p className="c-side">{x.side}</p>
+            <p><b>Leading indicator:</b> {x.lead}</p>
+            <p className="c-side">{x.rev}</p>
             <p className="c-call">{x.call}</p>
           </div>))}</div>
-        <p><b>What the simulation taught me:</b> quiz-length came out at +33% (p = 0.03) while the assumed true effect was about +7%. A “significant” result at this sample size overstates the effect, so I'd re-run before shipping. And chat-length shows that a feature users like can still lose money when it costs completion.</p>
       </section>
 
       <section>
-        <h2>8. What I'd do next with real traffic</h2>
+        <h2>8. Analytics the way a data team runs it</h2>
         <ul>
-          <li>Run entry-mode and chat-length first: biggest expected effect, fastest to read.</li>
-          <li>Judge paywall-model on 90-day LTV and refund rate, not first charge.</li>
-          <li>Replace example reviews with real ones as they come in; add the real rating once it exists.</li>
-          <li>Move purchase tracking to a Stripe webhook; it's client-side in this build.</li>
+          <li><b>Tracking plan as code.</b> 48 events with owners and typed properties in one JSON file; a validator checks any export against it. Running it on the live funnel found a real bug: an event property named <code>length</code> makes the Mixpanel SDK drop <i>every</i> property of that event.</li>
+          <li><b>Revenue from the server.</b> A Stripe webhook sends purchases, trial conversions, renewals, failed payments, cancellations and refunds. In the migration window the old browser event missed 7.5% of purchases and under-counted revenue by 3.5%.</li>
+          <li><b>One person across web, payments and app.</b> Anonymous device id until the email, then <code>identify</code>; the same id travels in Stripe metadata and signs into the app.</li>
+          <li><b>Monitoring.</b> A daily anomaly rule (robust z against the same weekday) caught both incidents in six months and nothing else: an Android release that stopped sending paywall views, and a model outage that pushed AI fallbacks from 4% to 28%.</li>
         </ul>
-        <p className="c-note">Payments run in Stripe test mode, so nothing can be charged. Experiment numbers on this page are simulated, and labelled as such in the report.</p>
+        <figure className="c-wide"><img src="/case/a_ltv_payback.webp" alt="Cumulative LTV by channel against CAC" loading="lazy" /><figcaption>TikTok converts worst and pays back first (~61 days); Google converts best and doesn't pay back within 120 days at today's bids</figcaption></figure>
+        <figure className="c-wide"><img src="/case/a_retention.webp" alt="Renewal of 4-week subscribers, activated vs not" loading="lazy" /><figcaption>53% of cancellations say “not using it”. Subscribers who start in the app within 72 h renew at 73% vs 55%, and only 41% do</figcaption></figure>
+        <figure className="c-wide"><img src="/case/a_alerts.webp" alt="AI fallback rate with alert days" loading="lazy" /><figcaption>The monitoring rule fired on the outage day</figcaption></figure>
+        <p>Four memos with the decisions, a metrics dictionary with a North Star (weekly engaged subscribers), an experiment playbook and the Mixpanel setup (prod and dev projects, Lexicon, five boards) are <a href="https://github.com/lev559/ascend-demo-funnel/tree/main/analytics" target="_blank" rel="noreferrer">in the repo</a>.</p>
+      </section>
+
+      <section>
+        <h2>9. What I'd do next with real traffic</h2>
+        <ul>
+          <li>Fix activation first: a magic-link sign-in on the success page and the first coach message waiting in the app. It moves renewal and, through LTV, every channel's payback.</li>
+          <li>Test the paywall without the 1-week plan: it sells the cheapest first charge and almost nobody is still paying at day 35.</li>
+          <li>Shift 15–20% of the Google budget to TikTok angles that convert, then confirm with a 4-week geo holdout.</li>
+          <li>Replace example reviews with real ones as they come in; add the real rating once it exists.</li>
+        </ul>
+        <p className="c-note">Payments run in Stripe test mode, so nothing can be charged. Experiment and revenue numbers on this page are simulated, and labelled as such in the memos.</p>
       </section>
 
       <footer className="c-foot"><a href={TRY[v]}>Try the funnel →</a><span>Lev Ryazanov · 2026</span></footer>

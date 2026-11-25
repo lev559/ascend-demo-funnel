@@ -1,0 +1,235 @@
+{
+ "seed": 3031,
+ "start": "2026-06-01T00:00:00+00:00",
+ "end": "2026-11-23T00:00:00+00:00",
+ "visitors": 55640,
+ "events": 714030,
+ "profiles": 9001,
+ "rates": {
+  "start_quiz": 0.56,
+  "preselected_bonus": 0.05,
+  "write_done": {
+   "write": 0.74,
+   "tap": 0.86
+  },
+  "gen_q_continue": 0.975,
+  "ai_q_continue": 0.985,
+  "interstitial_continue": 0.97,
+  "name_continue": 0.95,
+  "match_to_chat": 0.93,
+  "chat_reply": 0.86,
+  "loader_done": 0.96,
+  "email": {
+   "base": 0.6,
+   "chat4": 0.04,
+   "long": 0.02,
+   "tap": -0.02
+  },
+  "opt_in": 0.38,
+  "plan_to_paywall": 0.93,
+  "checkout": {
+   "weekly": 0.135,
+   "annual_trial": 0.165
+  },
+  "checkout_mult": {
+   "long": 1.06,
+   "chat4": 1.05,
+   "tap": 0.97
+  },
+  "checkout_to_paid": {
+   "weekly": 0.72,
+   "annual_trial": 0.76
+  },
+  "timer_late": 0.16,
+  "plan_mix": {
+   "weekly": {
+    "1w": 0.4,
+    "4w": 0.45,
+    "12w": 0.15
+   },
+   "annual_trial": {
+    "year": 0.72,
+    "month": 0.28
+   }
+  },
+  "return_visit": 0.22,
+  "downsell_buy": 0.07,
+  "upsell": {
+   "single": 0.21,
+   "bundle": 0.155
+  },
+  "llm_fallback": 0.04,
+  "crisis": 0.003,
+  "nav_back": 0.05,
+  "questions_wait": 0.18,
+  "app_login": 0.72,
+  "engagement_mean": 0.5,
+  "renew": {
+   "1w": [
+    0.38,
+    0.4
+   ],
+   "4w": [
+    0.5,
+    0.38
+   ],
+   "12w": [
+    0.55,
+    0.35
+   ],
+   "month": [
+    0.52,
+    0.36
+   ],
+   "4w_back": [
+    0.45,
+    0.38
+   ]
+  },
+  "trial_to_paid": [
+   0.22,
+   0.5
+  ],
+  "refund_first_charge": [
+   0.015,
+   0.07
+  ],
+  "payment_failed": 0.045,
+  "payment_recovered": 0.55,
+  "weekly_actions": 5.5,
+  "engagement_decay": 0.94
+ },
+ "channels": {
+  "meta": {
+   "share": 0.58,
+   "cpv": 0.92,
+   "start": 1.0,
+   "buy": 1.0,
+   "engage": 1.0,
+   "refund": 1.0,
+   "medium": "paid_social"
+  },
+  "tiktok": {
+   "share": 0.24,
+   "cpv": 0.55,
+   "start": 0.92,
+   "buy": 0.78,
+   "engage": 0.85,
+   "refund": 1.6,
+   "medium": "paid_social"
+  },
+  "google": {
+   "share": 0.12,
+   "cpv": 1.45,
+   "start": 1.08,
+   "buy": 1.3,
+   "engage": 1.1,
+   "refund": 0.8,
+   "medium": "paid_search"
+  },
+  "organic": {
+   "share": 0.06,
+   "cpv": 0.0,
+   "start": 1.1,
+   "buy": 1.2,
+   "engage": 1.15,
+   "refund": 0.7,
+   "medium": "organic"
+  }
+ },
+ "prices": {
+  "1w": [
+   6.93,
+   13.86,
+   7
+  ],
+  "4w": [
+   19.99,
+   39.99,
+   28
+  ],
+  "12w": [
+   39.99,
+   79.99,
+   84
+  ],
+  "year": [
+   0.0,
+   79.99,
+   365
+  ],
+  "month": [
+   19.99,
+   19.99,
+   30
+  ],
+  "4w_back": [
+   14.99,
+   39.99,
+   28
+  ]
+ },
+ "experiments": [
+  {
+   "key": "entry-mode",
+   "flag": "exp_entry_mode",
+   "start": "2026-06-01",
+   "end": "2026-06-29",
+   "control": "write",
+   "variant": "tap",
+   "ship": true
+  },
+  {
+   "key": "quiz-length",
+   "flag": "exp_quiz_length",
+   "start": "2026-07-01",
+   "end": "2026-07-29",
+   "control": "short",
+   "variant": "long",
+   "ship": false
+  },
+  {
+   "key": "chat-length",
+   "flag": "exp_chat_length",
+   "start": "2026-08-03",
+   "end": "2026-08-31",
+   "control": "2",
+   "variant": "4",
+   "ship": false
+  },
+  {
+   "key": "paywall-model",
+   "flag": "exp_paywall_model",
+   "start": "2026-09-01",
+   "end": "2026-10-13",
+   "control": "weekly",
+   "variant": "annual_trial",
+   "ship": true
+  },
+  {
+   "key": "upsell-offer",
+   "flag": "exp_upsell_offer",
+   "start": "2026-10-14",
+   "end": "2026-11-18",
+   "control": "single",
+   "variant": "bundle",
+   "ship": false
+  }
+ ],
+ "incidents": [
+  {
+   "id": "llm_outage",
+   "start": "2026-10-06T14:00",
+   "end": "2026-10-07T09:00",
+   "what": "Model provider outage: most AI calls fall back to written templates",
+   "llm_fallback": 0.7,
+   "checkout_mult": 0.82
+  },
+  {
+   "id": "android_paywall_tracking",
+   "start": "2026-09-22T10:00",
+   "end": "2026-09-24T16:00",
+   "what": "Release bug: paywall_viewed not sent on Android (tracking only, purchases unaffected)"
+  }
+ ]
+}

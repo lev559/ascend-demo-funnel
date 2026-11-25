@@ -1,7 +1,6 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { UPSELLS } from "../../lib/funnel";
 import { COACHES } from "../../lib/coaches";
 import { track } from "../../lib/analytics";
 import { CoachAvatar } from "../art";
@@ -11,12 +10,7 @@ function Done() {
   const [st, setSt] = useState({});
   useEffect(() => {
     try { setSt(JSON.parse(localStorage.getItem("dw_state") || "{}")); } catch {}
-    const sid = q.get("session_id");
-    if (sid && q.get("upsell") && !sessionStorage.getItem("tracked_" + sid)) {
-      const o = UPSELLS[q.get("upsell")];
-      track("upsell_purchased", { offer: o?.id, revenue: o?.price, variant: q.get("upsell") });
-      sessionStorage.setItem("tracked_" + sid, "1");
-    }
+    // upsell_purchased is sent by the Stripe webhook (server), not from here
     track("onboarding_reached");
   }, []);
   const c = COACHES[st.coachId] || COACHES.theo;

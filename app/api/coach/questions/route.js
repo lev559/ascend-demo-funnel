@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { serverTrack } from '../../../../lib/mpServer';
 import { allowModelCall } from '../../../../lib/ratelimit';
 import { callLLM, parseJSON, hasLLM, reason as why } from '../../../../lib/llm';
 import { questionsPrompt } from '../../../../lib/coachPrompt';
@@ -11,14 +12,14 @@ export async function POST(req) {
   try { body = await req.json(); } catch {}
   const ctx = body.ctx || {};
   const n = Math.min(Math.max(Number(body.n) || 3, 1), 5);
-  if (isCrisis(ctx.text)) return NextResponse.json({ crisis: true, text: CRISIS_REPLY });
+  if (isCrisis(ctx.text)) { await serverTrack('crisis_flagged', { userId: body.uid, deviceId: body.did }, { source: 'regex', surface: 'questions' }); return NextResponse.json({ crisis: true, text: CRISIS_REPLY }); }
   const fb = () => fallbackQuestions(ctx.reason, ctx.text, n);
   if (!hasLLM()) return NextResponse.json({ ...fb(), mode: 'fallback', reason: 'no key' });
   const gate = allowModelCall(req);
   if (!gate.ok) return NextResponse.json({ ...fb(), mode: 'fallback', reason: gate.reason });
   try {
     const out = parseJSON(await callLLM(questionsPrompt(ctx, n), { maxTokens: 760, timeout: 9000, temperature: 0.5 }));
-    if (out.risk === true) return NextResponse.json({ crisis: true, text: CRISIS_REPLY, mode: 'model_flag' });
+    if (out.risk === true) { await serverTrack('crisis_flagged', { userId: body.uid, deviceId: body.did }, { source: 'model', surface: 'questions' }); return NextResponse.json({ crisis: true, text: CRISIS_REPLY, mode: 'model_flag' }); }
     const qs = (out.questions || []).filter((q) => q && q.q && Array.isArray(q.options) && q.options.length >= 3)
       .slice(0, n).map((q) => ({ q: String(q.q).slice(0, 120), label: String(q.label || '').slice(0, 30), options: q.options.slice(0, 4).map((o) => ({ label: String(o.label || o).slice(0, 40), sub: String(o.sub || '').slice(0, 60) })) }));
     const r = out.reflection || {};

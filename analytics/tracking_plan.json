@@ -1,0 +1,1526 @@
+{
+ "version": "3.0",
+ "convention": "snake_case object_action in past tense; properties snake_case; money in USD as number; no free text, names or emails in event properties",
+ "super_properties": {
+  "platform": {
+   "type": "enum",
+   "required": true,
+   "description": "Where the event fired",
+   "enum": [
+    "web",
+    "ios",
+    "android",
+    "server"
+   ]
+  },
+  "funnel_version": {
+   "type": "string",
+   "required": true,
+   "description": "e.g. v3; bump on any change to screens or events"
+  },
+  "angle": {
+   "type": "string",
+   "required": true,
+   "description": "Ad angle from ?angle= / utm_content"
+  },
+  "utm_source": {
+   "type": "string",
+   "required": true,
+   "description": ""
+  },
+  "utm_medium": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  },
+  "utm_campaign": {
+   "type": "string",
+   "required": true,
+   "description": ""
+  },
+  "utm_content": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  },
+  "channel": {
+   "type": "enum",
+   "required": true,
+   "description": "Derived from utm_source",
+   "enum": [
+    "meta",
+    "tiktok",
+    "google",
+    "organic",
+    "referral"
+   ]
+  },
+  "exp_quiz_length": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  },
+  "exp_entry_mode": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  },
+  "exp_chat_length": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  },
+  "exp_paywall_model": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  },
+  "exp_upsell_offer": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  }
+ },
+ "profile_properties": {
+  "$email": {
+   "type": "string",
+   "required": false,
+   "description": "Not sent in this build (no messaging tool needs it). Would be set after email_submitted with consent"
+  },
+  "first_seen": {
+   "type": "date",
+   "required": true,
+   "description": ""
+  },
+  "signup_date": {
+   "type": "date",
+   "required": false,
+   "description": ""
+  },
+  "acquisition_channel": {
+   "type": "string",
+   "required": true,
+   "description": ""
+  },
+  "first_angle": {
+   "type": "string",
+   "required": true,
+   "description": ""
+  },
+  "reason": {
+   "type": "enum",
+   "required": true,
+   "description": "",
+   "enum": [
+    "overload",
+    "start",
+    "lost",
+    "talk"
+   ]
+  },
+  "age_band": {
+   "type": "string",
+   "required": false,
+   "description": ""
+  },
+  "coach": {
+   "type": "enum",
+   "required": true,
+   "description": "",
+   "enum": [
+    "nora",
+    "ines",
+    "max",
+    "theo"
+   ]
+  },
+  "marketing_opt_in": {
+   "type": "boolean",
+   "required": false,
+   "description": ""
+  },
+  "plan": {
+   "type": "enum",
+   "required": false,
+   "description": "",
+   "enum": [
+    "1w",
+    "4w",
+    "12w",
+    "year",
+    "month",
+    "4w_back"
+   ]
+  },
+  "subscription_status": {
+   "type": "enum",
+   "required": false,
+   "description": "",
+   "enum": [
+    "none",
+    "trialing",
+    "active",
+    "cancelled",
+    "past_due",
+    "ended"
+   ]
+  },
+  "ltv_usd": {
+   "type": "number",
+   "required": false,
+   "description": "Net revenue to date (renewals + upsells − refunds), set by the webhook"
+  },
+  "periods_paid": {
+   "type": "number",
+   "required": false,
+   "description": ""
+  }
+ },
+ "events": [
+  {
+   "event": "landing_viewed",
+   "category": "Acquisition",
+   "source": "web",
+   "trigger": "Landing screen rendered for a new or reset session",
+   "properties": {},
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "quiz_started",
+   "category": "Onboarding quiz",
+   "source": "web",
+   "trigger": "Reason card tapped on the landing",
+   "properties": {
+    "reason": {
+     "type": "enum",
+     "required": true,
+     "description": "Card the person picked",
+     "enum": [
+      "overload",
+      "start",
+      "lost",
+      "talk"
+     ]
+    },
+    "preselected": {
+     "type": "boolean",
+     "required": true,
+     "description": "Picked the card the ad angle preselected"
+    },
+    "quiz_length": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "short",
+      "long"
+     ]
+    },
+    "entry_mode": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "write",
+      "tap"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "situation_written",
+   "category": "Onboarding quiz",
+   "source": "web",
+   "trigger": "Situation submitted (typed or tapped example)",
+   "properties": {
+    "text_length": {
+     "type": "number",
+     "required": true,
+     "description": "Characters, never the text itself. Not named `length`: the Mixpanel JS SDK treats objects with a numeric length as arrays and drops every property"
+    },
+    "reason": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "overload",
+      "start",
+      "lost",
+      "talk"
+     ]
+    },
+    "how": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "typed",
+      "example",
+      "tap"
+     ]
+    },
+    "entry_mode": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "write",
+      "tap"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "coach_questions_generated",
+   "category": "AI",
+   "source": "web",
+   "trigger": "Model (or fallback) returned the situation questions",
+   "properties": {
+    "mode": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "llm",
+      "fallback",
+      "error"
+     ]
+    },
+    "ms": {
+     "type": "number",
+     "required": true,
+     "description": "Latency"
+    },
+    "n": {
+     "type": "number",
+     "required": false,
+     "description": ""
+    },
+    "crisis": {
+     "type": "boolean",
+     "required": false,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "questions_wait_shown",
+   "category": "AI",
+   "source": "web",
+   "trigger": "'Reading what you wrote' spinner shown because questions were not ready",
+   "properties": {
+    "ms": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "interstitial_viewed",
+   "category": "Onboarding quiz",
+   "source": "web",
+   "trigger": "Reflection or summary screen shown",
+   "properties": {
+    "which": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "reflection",
+      "summary"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": "Renamed from breather_viewed (v2); Lexicon keeps the old name as an alias"
+  },
+  {
+   "event": "quiz_step_completed",
+   "category": "Onboarding quiz",
+   "source": "web",
+   "trigger": "Any quiz question answered",
+   "properties": {
+    "step": {
+     "type": "number",
+     "required": true,
+     "description": "1-based position; differs by quiz_length, use step_id for joins"
+    },
+    "step_id": {
+     "type": "string",
+     "required": true,
+     "description": "Question id (age, since, ...) or dyn_N"
+    },
+    "quiz_length": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "short",
+      "long"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "name_submitted",
+   "category": "Onboarding quiz",
+   "source": "web",
+   "trigger": "First name entered",
+   "properties": {},
+   "status": "live",
+   "owner": "Growth",
+   "notes": "Name itself is never sent"
+  },
+  {
+   "event": "coach_matched",
+   "category": "Coach",
+   "source": "web",
+   "trigger": "Coach match screen shown after the voice question",
+   "properties": {
+    "coach": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "nora",
+      "ines",
+      "max",
+      "theo"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "coach_switched",
+   "category": "Coach",
+   "source": "web",
+   "trigger": "Person picked another coach on the match screen",
+   "properties": {
+    "coach": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "nora",
+      "ines",
+      "max",
+      "theo"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "coach_message_shown",
+   "category": "Coach",
+   "source": "web",
+   "trigger": "A coach message rendered in the funnel chat",
+   "properties": {
+    "coach": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "nora",
+      "ines",
+      "max",
+      "theo"
+     ]
+    },
+    "turn": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "mode": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "llm",
+      "fallback",
+      "error"
+     ]
+    },
+    "ms": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "chat_length": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "2",
+      "4"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "coach_reply_sent",
+   "category": "Coach",
+   "source": "web",
+   "trigger": "Person sent a reply in the funnel chat",
+   "properties": {
+    "coach": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "nora",
+      "ines",
+      "max",
+      "theo"
+     ]
+    },
+    "turn": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "quick": {
+     "type": "boolean",
+     "required": true,
+     "description": "Tapped a suggested reply"
+    },
+    "chat_length": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "2",
+      "4"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "chat_completed",
+   "category": "Coach",
+   "source": "web",
+   "trigger": "Last coach turn shown",
+   "properties": {
+    "coach": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "nora",
+      "ines",
+      "max",
+      "theo"
+     ]
+    },
+    "chat_length": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "2",
+      "4"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "plan_generated",
+   "category": "AI",
+   "source": "web",
+   "trigger": "Personal plan returned",
+   "properties": {
+    "mode": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "llm",
+      "fallback",
+      "error"
+     ]
+    },
+    "ms": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "loader_question_answered",
+   "category": "Onboarding quiz",
+   "source": "web",
+   "trigger": "Yes/no pop-up on the loader answered",
+   "properties": {
+    "q": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "a": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "yes",
+      "no"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": "Renamed from loader_answer (v2)"
+  },
+  {
+   "event": "email_viewed",
+   "category": "Lead",
+   "source": "web",
+   "trigger": "Email screen shown",
+   "properties": {},
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "email_submitted",
+   "category": "Lead",
+   "source": "web",
+   "trigger": "Valid email submitted; fires identify(user_id) right after",
+   "properties": {
+    "marketing_opt_in": {
+     "type": "boolean",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "result_viewed",
+   "category": "Plan",
+   "source": "web",
+   "trigger": "Plan screen shown",
+   "properties": {
+    "mode": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "llm",
+      "fallback",
+      "error"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "commitment_signed",
+   "category": "Plan",
+   "source": "web",
+   "trigger": "Press-and-hold on the deal screen completed",
+   "properties": {},
+   "status": "live",
+   "owner": "Growth",
+   "notes": "Renamed from deal_signed (v2)"
+  },
+  {
+   "event": "paywall_viewed",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Paywall shown to a first-time visitor",
+   "properties": {
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "downsell_viewed",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Paywall shown to a returning visitor (downsell)",
+   "properties": {
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "paywall_timer_expired",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Intro-price timer reached zero on screen",
+   "properties": {},
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "plan_selected",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Plan card tapped",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "checkout_started",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Redirect to Stripe Checkout",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "price": {
+     "type": "number",
+     "required": true,
+     "description": "Charged today, USD"
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    },
+    "intro": {
+     "type": "boolean",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "checkout_abandoned",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Returned from Stripe via cancel_url",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "upsell_viewed",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Upsell screen shown after purchase",
+   "properties": {
+    "offer": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "variant": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "single",
+      "bundle"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "upsell_checkout_started",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Upsell checkout opened",
+   "properties": {
+    "offer": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "price": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "variant": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "single",
+      "bundle"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "upsell_declined",
+   "category": "Monetisation",
+   "source": "web",
+   "trigger": "Upsell skipped",
+   "properties": {
+    "offer": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "variant": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "single",
+      "bundle"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "onboarding_reached",
+   "category": "Activation",
+   "source": "web",
+   "trigger": "Done screen with app download links shown",
+   "properties": {},
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "app_download_clicked",
+   "category": "Activation",
+   "source": "web",
+   "trigger": "Store badge tapped",
+   "properties": {
+    "store": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "ios",
+      "android"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": ""
+  },
+  {
+   "event": "nav_back_clicked",
+   "category": "UX",
+   "source": "web",
+   "trigger": "Browser back inside the funnel",
+   "properties": {
+    "from": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Growth",
+   "notes": "Renamed from browser_back (v2)"
+  },
+  {
+   "event": "$experiment_started",
+   "category": "Experiments",
+   "source": "web",
+   "trigger": "GrowthBook assigned the user to an experiment (once per experiment per user)",
+   "properties": {
+    "Experiment name": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "Variant name": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "variation_value": {
+     "type": "string",
+     "required": false,
+     "description": ""
+    },
+    "assignment": {
+     "type": "enum",
+     "required": false,
+     "description": "test = randomised split, holdout = 5% kept on control after ship",
+     "enum": [
+      "test",
+      "holdout"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": "Name and props fixed by GrowthBook's Mixpanel integration"
+  },
+  {
+   "event": "subscription_started",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "Stripe checkout.session.completed (mode=subscription)",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "subscription_id": {
+     "type": "string",
+     "required": true,
+     "description": "Stripe subscription id"
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    },
+    "revenue": {
+     "type": "number",
+     "required": true,
+     "description": "USD charged now (0 for trials)"
+    },
+    "intro": {
+     "type": "boolean",
+     "required": true,
+     "description": ""
+    },
+    "trial": {
+     "type": "boolean",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": "Replaces client-side purchase_completed as the revenue event"
+  },
+  {
+   "event": "trial_converted",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "First paid invoice after a trial (invoice.paid, billing_reason=subscription_cycle, period 1)",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "subscription_id": {
+     "type": "string",
+     "required": true,
+     "description": "Stripe subscription id"
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    },
+    "revenue": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": ""
+  },
+  {
+   "event": "subscription_renewed",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "invoice.paid for a later period",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "subscription_id": {
+     "type": "string",
+     "required": true,
+     "description": "Stripe subscription id"
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    },
+    "revenue": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "period": {
+     "type": "number",
+     "required": true,
+     "description": "2 = first renewal"
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": ""
+  },
+  {
+   "event": "payment_failed",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "invoice.payment_failed",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "subscription_id": {
+     "type": "string",
+     "required": true,
+     "description": "Stripe subscription id"
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    },
+    "attempt": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": ""
+  },
+  {
+   "event": "subscription_cancelled",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "customer.subscription.updated with cancel_at_period_end=true",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "subscription_id": {
+     "type": "string",
+     "required": true,
+     "description": "Stripe subscription id"
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    },
+    "period": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "reason": {
+     "type": "enum",
+     "required": false,
+     "description": "",
+     "enum": [
+      "too_expensive",
+      "not_using",
+      "not_helpful",
+      "other",
+      "none"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": "Cancel intent; access continues to period end"
+  },
+  {
+   "event": "subscription_ended",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "customer.subscription.deleted",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "subscription_id": {
+     "type": "string",
+     "required": true,
+     "description": "Stripe subscription id"
+    },
+    "paywall_model": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "weekly",
+      "annual_trial",
+      "downsell"
+     ]
+    },
+    "periods_paid": {
+     "type": "number",
+     "required": false,
+     "description": ""
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": ""
+  },
+  {
+   "event": "refund_issued",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "charge.refunded",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "amount": {
+     "type": "number",
+     "required": true,
+     "description": "USD, positive number"
+    },
+    "reason": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "requested",
+      "duplicate",
+      "fraud",
+      "guarantee"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": ""
+  },
+  {
+   "event": "upsell_purchased",
+   "category": "Revenue",
+   "source": "server",
+   "trigger": "checkout.session.completed (mode=payment) for an upsell",
+   "properties": {
+    "offer": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "revenue": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "variant": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "single",
+      "bundle"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Data",
+   "notes": "Moves from the client to the webhook"
+  },
+  {
+   "event": "purchase_completed",
+   "category": "Revenue",
+   "source": "web",
+   "trigger": "Success page after Stripe (client)",
+   "properties": {
+    "plan": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "1w",
+      "4w",
+      "12w",
+      "year",
+      "month",
+      "4w_back"
+     ]
+    },
+    "revenue": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "currency": {
+     "type": "string",
+     "required": true,
+     "description": ""
+    },
+    "trial": {
+     "type": "boolean",
+     "required": true,
+     "description": ""
+    },
+    "intro": {
+     "type": "boolean",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "deprecated",
+   "owner": "Growth",
+   "notes": "Kept one release for comparison with subscription_started, then hidden in Lexicon"
+  },
+  {
+   "event": "app_opened",
+   "category": "Activation",
+   "source": "app",
+   "trigger": "App launched; first launch carries first_open=true",
+   "properties": {
+    "first_open": {
+     "type": "boolean",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "spec",
+   "owner": "App",
+   "notes": "Specified for the app; present in simulated data only"
+  },
+  {
+   "event": "app_login",
+   "category": "Activation",
+   "source": "app",
+   "trigger": "Signed in with the web email (magic link); calls identify(user_id) so web and app join",
+   "properties": {},
+   "status": "spec",
+   "owner": "App",
+   "notes": "Specified for the app; present in simulated data only"
+  },
+  {
+   "event": "coach_session_started",
+   "category": "Engagement",
+   "source": "app",
+   "trigger": "Chat with the coach opened and first message sent",
+   "properties": {
+    "coach": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "nora",
+      "ines",
+      "max",
+      "theo"
+     ]
+    }
+   },
+   "status": "spec",
+   "owner": "App",
+   "notes": "Specified for the app; present in simulated data only"
+  },
+  {
+   "event": "plan_step_completed",
+   "category": "Engagement",
+   "source": "app",
+   "trigger": "A day in the 7-day plan marked done",
+   "properties": {
+    "day": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    },
+    "plan_week": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "spec",
+   "owner": "App",
+   "notes": "Specified for the app; present in simulated data only"
+  },
+  {
+   "event": "checkin_answered",
+   "category": "Engagement",
+   "source": "app",
+   "trigger": "Reply to a scheduled check-in",
+   "properties": {
+    "slot": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "morning",
+      "evening",
+      "sunday"
+     ]
+    }
+   },
+   "status": "spec",
+   "owner": "App",
+   "notes": "Specified for the app; present in simulated data only"
+  },
+  {
+   "event": "weekly_review_completed",
+   "category": "Engagement",
+   "source": "app",
+   "trigger": "Sunday review finished",
+   "properties": {
+    "week": {
+     "type": "number",
+     "required": true,
+     "description": ""
+    }
+   },
+   "status": "spec",
+   "owner": "App",
+   "notes": "Specified for the app; present in simulated data only"
+  },
+  {
+   "event": "crisis_flagged",
+   "category": "Safety",
+   "source": "server",
+   "trigger": "Crisis regex or model RISK flag fired (no text stored)",
+   "properties": {
+    "source": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "regex",
+      "model"
+     ]
+    },
+    "surface": {
+     "type": "enum",
+     "required": true,
+     "description": "",
+     "enum": [
+      "questions",
+      "chat",
+      "plan",
+      "app"
+     ]
+    }
+   },
+   "status": "live",
+   "owner": "Trust & Safety",
+   "notes": ""
+  }
+ ]
+}

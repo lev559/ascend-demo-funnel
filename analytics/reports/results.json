@@ -1,0 +1,573 @@
+{
+ "dataset": {
+  "visitors": 55640,
+  "events": 714030,
+  "start": "2026-06-01T00:00:00+00:00",
+  "end": "2026-11-23T00:00:00+00:00"
+ },
+ "experiments": {
+  "entry-mode": {
+   "control": "write",
+   "variant": "tap",
+   "window": "2026-06-01 \u2192 2026-06-29",
+   "n": [
+    3289,
+    3248
+   ],
+   "srm_chi2": 0.26,
+   "srm_p": 0.6121,
+   "primary": "rev_d30",
+   "primary_means": [
+    0.5172,
+    0.4821
+   ],
+   "lift": -0.0679,
+   "ci95": [
+    -0.5421,
+    0.4063
+   ],
+   "p": 0.779,
+   "adj_lift": -0.0688,
+   "adj_ci95": [
+    -0.5443,
+    0.4067
+   ],
+   "variance_reduction": -0.005,
+   "mde_at_this_n": 0.7124,
+   "secondary": "situation_written",
+   "secondary_rates": [
+    0.4582,
+    0.5179
+   ],
+   "secondary_lift": 0.1302,
+   "secondary_p": 0.0,
+   "shipped": true,
+   "holdout": {
+    "n": [
+     852,
+     16263
+    ],
+    "means": [
+     0.3548,
+     0.5586
+    ],
+    "lift": 0.5743,
+    "p": 0.1757
+   }
+  },
+  "quiz-length": {
+   "control": "short",
+   "variant": "long",
+   "window": "2026-07-01 \u2192 2026-07-29",
+   "n": [
+    3677,
+    3831
+   ],
+   "srm_chi2": 3.16,
+   "srm_p": 0.0755,
+   "primary": "rev_d30",
+   "primary_means": [
+    0.5752,
+    0.5436
+   ],
+   "lift": -0.0549,
+   "ci95": [
+    -0.4776,
+    0.3679
+   ],
+   "p": 0.7992,
+   "adj_lift": -0.0617,
+   "adj_ci95": [
+    -0.4857,
+    0.3623
+   ],
+   "variance_reduction": -0.006,
+   "mde_at_this_n": 0.6147,
+   "secondary": "paywall_viewed",
+   "secondary_rates": [
+    0.1518,
+    0.1303
+   ],
+   "secondary_lift": -0.1417,
+   "secondary_p": 0.0075,
+   "shipped": false
+  },
+  "chat-length": {
+   "control": "2",
+   "variant": "4",
+   "window": "2026-08-03 \u2192 2026-08-31",
+   "n": [
+    4301,
+    4314
+   ],
+   "srm_chi2": 0.02,
+   "srm_p": 0.8886,
+   "primary": "rev_d30",
+   "primary_means": [
+    0.6726,
+    0.4368
+   ],
+   "lift": -0.3506,
+   "ci95": [
+    -0.687,
+    -0.0142
+   ],
+   "p": 0.0411,
+   "adj_lift": -0.3312,
+   "adj_ci95": [
+    -0.6674,
+    0.0049
+   ],
+   "variance_reduction": 0.002,
+   "mde_at_this_n": 0.5325,
+   "secondary": "email_submitted",
+   "secondary_rates": [
+    0.1625,
+    0.1277
+   ],
+   "secondary_lift": -0.2141,
+   "secondary_p": 0.0,
+   "shipped": false
+  },
+  "paywall-model": {
+   "control": "weekly",
+   "variant": "annual_trial",
+   "window": "2026-09-01 \u2192 2026-10-13",
+   "n": [
+    1104,
+    1137
+   ],
+   "srm_chi2": 0.49,
+   "srm_p": 0.4857,
+   "primary": "rev_d30",
+   "primary_means": [
+    3.9598,
+    4.2381
+   ],
+   "lift": 0.0703,
+   "ci95": [
+    -0.2462,
+    0.3867
+   ],
+   "p": 0.6634,
+   "adj_lift": 0.0732,
+   "adj_ci95": [
+    -0.242,
+    0.3884
+   ],
+   "variance_reduction": 0.008,
+   "mde_at_this_n": 0.4185,
+   "secondary": "subscription_started",
+   "secondary_rates": [
+    0.106,
+    0.1231
+   ],
+   "secondary_lift": 0.1619,
+   "secondary_p": 0.2023,
+   "shipped": true,
+   "holdout": {
+    "n": [
+     121,
+     2438
+    ],
+    "means": [
+     2.9621,
+     3.7684
+    ],
+    "lift": 0.2722,
+    "p": 0.4646
+   }
+  },
+  "upsell-offer": {
+   "control": "single",
+   "variant": "bundle",
+   "window": "2026-10-14 \u2192 2026-11-18",
+   "n": [
+    149,
+    154
+   ],
+   "srm_chi2": 0.08,
+   "srm_p": 0.7739,
+   "primary": "upsell_rev",
+   "primary_means": [
+    2.0114,
+    2.4334
+   ],
+   "lift": 0.2098,
+   "ci95": [
+    -0.3311,
+    0.7507
+   ],
+   "p": 0.4471,
+   "adj_lift": 0.1399,
+   "adj_ci95": [
+    -0.432,
+    0.7118
+   ],
+   "variance_reduction": -0.118,
+   "mde_at_this_n": 0.6486,
+   "secondary": "upsell_purchased",
+   "secondary_rates": [
+    0.2013,
+    0.1623
+   ],
+   "secondary_lift": -0.1937,
+   "secondary_p": 0.3802,
+   "shipped": false
+  }
+ },
+ "unit_economics": {
+  "meta": {
+   "visitors": 32310,
+   "subscribers": 551,
+   "spend": 29747,
+   "cvr": 0.0171,
+   "cac": 53.99,
+   "ltv30": 36.94,
+   "n30": 402,
+   "ltv60": 46.85,
+   "n60": 273,
+   "ltv90": 60.09,
+   "n90": 184,
+   "ltv120": 60.39,
+   "n120": 112,
+   "payback_days": 76,
+   "roas_d30": 0.68
+  },
+  "tiktok": {
+   "visitors": 13286,
+   "subscribers": 169,
+   "spend": 7303,
+   "cvr": 0.0127,
+   "cac": 43.21,
+   "ltv30": 36.27,
+   "n30": 126,
+   "ltv60": 42.86,
+   "n60": 87,
+   "ltv90": 58.85,
+   "n90": 61,
+   "ltv120": 60.75,
+   "n120": 37,
+   "payback_days": 61,
+   "roas_d30": 0.84
+  },
+  "google": {
+   "visitors": 6620,
+   "subscribers": 169,
+   "spend": 9586,
+   "cvr": 0.0255,
+   "cac": 56.72,
+   "ltv30": 35.97,
+   "n30": 124,
+   "ltv60": 42.66,
+   "n60": 86,
+   "ltv90": 54.72,
+   "n90": 52,
+   "ltv120": 55.55,
+   "n120": 36,
+   "payback_days": null,
+   "roas_d30": 0.63
+  },
+  "organic": {
+   "visitors": 3424,
+   "subscribers": 73,
+   "spend": 0,
+   "cvr": 0.0213,
+   "cac": null,
+   "ltv30": 38.57,
+   "n30": 55,
+   "ltv60": 51.51,
+   "n60": 39,
+   "ltv90": 66.26,
+   "n90": 25,
+   "ltv120": null,
+   "n120": 8,
+   "payback_days": 0,
+   "roas_d30": null
+  }
+ },
+ "ltv_curve": {
+  "days": [
+   0,
+   5,
+   10,
+   15,
+   20,
+   25,
+   30,
+   35,
+   40,
+   45,
+   50,
+   55,
+   60,
+   65,
+   70,
+   75,
+   80,
+   85,
+   90,
+   95,
+   100,
+   105,
+   110,
+   115,
+   120
+  ],
+  "meta": [
+   0.0,
+   20.18,
+   22.36,
+   23.48,
+   23.48,
+   23.85,
+   37.9,
+   38.25,
+   38.25,
+   38.25,
+   38.25,
+   38.25,
+   46.47,
+   46.47,
+   46.47,
+   46.47,
+   46.47,
+   57.18,
+   57.18,
+   57.18,
+   57.18,
+   57.18,
+   57.18,
+   60.04,
+   60.39
+  ],
+  "tiktok": [
+   0.0,
+   19.69,
+   22.28,
+   24.53,
+   24.53,
+   26.4,
+   38.34,
+   39.42,
+   40.54,
+   40.92,
+   41.29,
+   41.29,
+   47.78,
+   47.78,
+   47.78,
+   47.78,
+   47.78,
+   57.5,
+   57.5,
+   57.5,
+   57.5,
+   57.5,
+   57.5,
+   60.75,
+   60.75
+  ],
+  "google": [
+   0.0,
+   22.43,
+   24.36,
+   26.28,
+   26.28,
+   26.66,
+   37.77,
+   38.88,
+   38.88,
+   38.88,
+   38.88,
+   38.88,
+   45.55,
+   45.55,
+   45.55,
+   45.55,
+   45.55,
+   54.44,
+   55.55,
+   55.55,
+   55.55,
+   55.55,
+   55.55,
+   55.55,
+   55.55
+  ]
+ },
+ "monthly": [
+  {
+   "month": "2026-06",
+   "spend": 5970,
+   "subscribers": 96,
+   "blended_cac": 64.89,
+   "ltv30": 36.23
+  },
+  {
+   "month": "2026-07",
+   "spend": 7075,
+   "subscribers": 124,
+   "blended_cac": 61.52,
+   "ltv30": 38.05
+  },
+  {
+   "month": "2026-08",
+   "spend": 7972,
+   "subscribers": 135,
+   "blended_cac": 66.99,
+   "ltv30": 38.36
+  },
+  {
+   "month": "2026-09",
+   "spend": 8579,
+   "subscribers": 176,
+   "blended_cac": 52.63,
+   "ltv30": 35.07
+  },
+  {
+   "month": "2026-10",
+   "spend": 9596,
+   "subscribers": 243,
+   "blended_cac": 42.46,
+   "ltv30": 36.66
+  },
+  {
+   "month": "2026-11",
+   "spend": 7443,
+   "subscribers": 188,
+   "blended_cac": 42.78,
+   "ltv30": null
+  }
+ ],
+ "retention": {
+  "cancel_reasons": {
+   "not_using": 0.529,
+   "too_expensive": 0.194,
+   "not_helpful": 0.174,
+   "other": 0.07,
+   "none": 0.032
+  },
+  "four_week_survival": {
+   "not_activated": {
+    "n": 189,
+    "renewed_into_period_2_to_6": [
+     0.546,
+     0.378,
+     0.245,
+     0.129,
+     0.118
+    ]
+   },
+   "activated": {
+    "n": 108,
+    "renewed_into_period_2_to_6": [
+     0.729,
+     0.417,
+     0.231,
+     0.105,
+     null
+    ]
+   }
+  },
+  "by": {
+   "channel": {
+    "google": {
+     "n": 118,
+     "still_paying_d35": 0.28
+    },
+    "meta": {
+     "n": 370,
+     "still_paying_d35": 0.314
+    },
+    "organic": {
+     "n": 52,
+     "still_paying_d35": 0.25
+    },
+    "tiktok": {
+     "n": 121,
+     "still_paying_d35": 0.314
+    }
+   },
+   "plan": {
+    "12w": {
+     "n": 65,
+     "still_paying_d35": 0.754
+    },
+    "1w": {
+     "n": 168,
+     "still_paying_d35": 0.006
+    },
+    "4w": {
+     "n": 192,
+     "still_paying_d35": 0.286
+    },
+    "4w_back": {
+     "n": 64,
+     "still_paying_d35": 0.297
+    },
+    "month": {
+     "n": 46,
+     "still_paying_d35": 0.457
+    },
+    "year": {
+     "n": 126,
+     "still_paying_d35": 0.437
+    }
+   }
+  },
+  "activation_rate": 0.406
+ },
+ "wes": {
+  "2026-06-01": 7,
+  "2026-06-08": 19,
+  "2026-06-15": 34,
+  "2026-06-22": 33,
+  "2026-06-29": 45,
+  "2026-07-06": 54,
+  "2026-07-13": 64,
+  "2026-07-20": 72,
+  "2026-07-27": 75,
+  "2026-08-03": 86,
+  "2026-08-10": 84,
+  "2026-08-17": 110,
+  "2026-08-24": 117,
+  "2026-08-31": 131,
+  "2026-09-07": 133,
+  "2026-09-14": 143,
+  "2026-09-21": 151,
+  "2026-09-28": 160,
+  "2026-10-05": 161,
+  "2026-10-12": 181,
+  "2026-10-19": 196,
+  "2026-10-26": 190,
+  "2026-11-02": 216,
+  "2026-11-09": 228,
+  "2026-11-16": 218
+ },
+ "data_quality": {
+  "migration_window": "2026-06-01 \u2192 2026-07-15",
+  "server_purchases": 146,
+  "client_purchase_events": 137,
+  "server_purchases_missing_on_client": 0.075,
+  "client_duplicates": 2,
+  "client_revenue": 2709.11,
+  "server_revenue": 2806.46,
+  "incidents": [
+   {
+    "id": "llm_outage",
+    "start": "2026-10-06T14:00",
+    "end": "2026-10-07T09:00",
+    "what": "Model provider outage: most AI calls fall back to written templates",
+    "llm_fallback": 0.7,
+    "checkout_mult": 0.82
+   },
+   {
+    "id": "android_paywall_tracking",
+    "start": "2026-09-22T10:00",
+    "end": "2026-09-24T16:00",
+    "what": "Release bug: paywall_viewed not sent on Android (tracking only, purchases unaffected)"
+   }
+  ]
+ }
+}
