@@ -1,65 +1,35 @@
 import { NextResponse } from 'next/server';
-import { COACHES, opener, timeQuestion, scriptedRepeat, TIME_REPLIES } from '../../../lib/coaches';
+import { COACHES } from '../../../lib/coaches';
+import { callLLM, parseJSON, hasLLM, reason as why } from '../../../lib/llm';
+import { chatPrompt } from '../../../lib/coachPrompt';
+import { fallbackChat } from '../../../lib/fallbacks';
 import { isCrisis, CRISIS_REPLY, isSafeReply } from '../../../lib/safety';
-import { systemPrompt, userPrompt } from '../../../lib/coachPrompt';
-import { LLM } from '../../../lib/config';
 
-// POST { coachId, turn: 1|2|3, pile, message, chatMode: 'scripted'|'llm' }
-// -> { text, mode: 'scripted' | 'llm' | 'fallback' | 'safety', quickReplies? }
-//
-// LLM mode is on when LLM_API_KEY is set (endpoint and model: lib/config.js, overridable by env). Any OpenAI-compatible
-// chat endpoint works (Cloudflare Workers AI, OpenRouter, Groq, Gemini's OpenAI endpoint).
+// POST { coachId, ctx, history:[{role,content}], turn, max } -> { text, replies, mode }
 // The key stays on the server; the browser never sees it.
-
-const TIMEOUT_MS = 4000;
-
 export async function POST(req) {
   let body = {};
-  try { body = await req.json(); } catch { /* empty body */ }
+  try { body = await req.json(); } catch {}
   const coachId = COACHES[body.coachId] ? body.coachId : 'theo';
-  const turn = Number(body.turn) || 1;
-  const message = String(body.message || '').slice(0, 500);
+  const ctx = body.ctx || {};
+  const max = Math.min(Math.max(Number(body.max) || 2, 2), 5);
+  const turn = Math.min(Math.max(Number(body.turn) || 1, 1), max);
+  const history = (Array.isArray(body.history) ? body.history : []).map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '').slice(0, 600) }));
+  const last = [...history].reverse().find((m) => m.role === 'user');
+  if (last && isCrisis(last.content)) return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' });
 
-  if (message && isCrisis(message)) {
-    return NextResponse.json({ text: CRISIS_REPLY, mode: 'safety' });
-  }
-  if (turn === 1) return NextResponse.json({ text: opener(coachId), mode: 'scripted' });
-  if (turn === 3) return NextResponse.json({ text: timeQuestion(coachId), mode: 'scripted', quickReplies: TIME_REPLIES });
-
-  // Turn 2: repeat-back + one thing tonight
-  const fallback = scriptedRepeat(coachId, body.pile, message);
-  const LLM_API_KEY = process.env.LLM_API_KEY;
-  const LLM_BASE_URL = LLM.baseUrl, LLM_MODEL = LLM.model;
-  // chat-mode experiment: the 'scripted' arm never calls the model
-  if (body.chatMode === 'scripted' || !LLM_API_KEY || !message) {
-    return NextResponse.json({ text: fallback, mode: 'scripted' });
-  }
-
+  const fb = () => fallbackChat(coachId, turn, max, ctx.name || 'there');
+  if (!hasLLM()) return NextResponse.json({ ...fb(), mode: 'fallback', reason: 'no key' });
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    const r = await fetch(`${LLM_BASE_URL.replace(/\/$/, '')}/chat/completions`, {
-      method: 'POST',
-      signal: ctrl.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${LLM_API_KEY}` },
-      body: JSON.stringify({
-        model: LLM_MODEL,
-        max_tokens: 160,
-        temperature: 0.6,
-        messages: [
-          { role: 'system', content: systemPrompt(coachId) },
-          { role: 'user', content: userPrompt({ pile: body.pile, message }) },
-        ],
-      }),
-    });
-    clearTimeout(timer);
-    if (!r.ok) return NextResponse.json({ text: fallback, mode: 'fallback', reason: `http ${r.status}`, model: LLM_MODEL });
-    const data = await r.json();
-    const text = (data?.choices?.[0]?.message?.content || '').trim().replace(/^"|"$/g, '').replace(/^(Theo|Nora|Ines|Max):\s*/, '');
-    if (!isSafeReply(text)) return NextResponse.json({ text: fallback, mode: 'fallback', reason: text ? `unsafe (${text.length} chars)` : 'empty', model: LLM_MODEL });
-    return NextResponse.json({ text, mode: 'llm' });
+    const raw = await callLLM(chatPrompt(ctx, coachId, history, turn, max), { maxTokens: 260, timeout: 9000 });
+    let text, replies = [], risk = false;
+    try { const j = parseJSON(raw); text = j.text; risk = j.risk === true; replies = Array.isArray(j.replies) ? j.replies : []; } catch { text = raw; }
+    if (risk) return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' });
+    text = String(text || '').trim().replace(/^"|"$/g, '').replace(/^(Theo|Nora|Ines|Max):\s*/, '');
+    if (!isSafeReply(text)) throw new Error(text ? 'unsafe' : 'empty');
+    replies = turn === max ? [] : replies.map((r) => String(r).slice(0, 32)).filter(Boolean).slice(0, 2);
+    return NextResponse.json({ text, replies, mode: 'llm' });
   } catch (e) {
-    // timeout, rate limit (429), provider down: the user still gets a good scripted line
-    return NextResponse.json({ text: fallback, mode: 'fallback', reason: e?.name === 'AbortError' ? 'timeout' : 'network', model: LLM_MODEL });
+    return NextResponse.json({ ...fb(), mode: 'fallback', reason: why(e) });
   }
 }

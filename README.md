@@ -1,23 +1,29 @@
-# Duskwise — demo web2app funnel for an AI coach, with an A/B testing stack
+# Duskwise: an adaptive AI-coach web2app funnel, with an A/B testing stack
 
-A portfolio project: quiz → coach match → mini-chat with the coach → plan → paywall → upsell, for a made-up AI-coach
-subscription ("the coach that remembers your week and tells you what can wait"), wired to the tools a growth team uses.
-**Not a real product. Payments run in Stripe test mode only. The experiment data in `data/` is simulated.**
+Case study: **[/case](https://ascend-demo-funnel.vercel.app/case)** · Live funnel: **[ascend-demo-funnel.vercel.app](https://ascend-demo-funnel.vercel.app)**
+
+Reason → situation in their own words → AI-written questions → name → pick a voice (= coach) → chat with the coach →
+plan written for them → email → plan → commitment → paywall → upsell. Built as a portfolio case for an AI-coach relaunch.
+Payments run in Stripe test mode only; the experiment data in `data/` is simulated (every event has `sim_version: 2`).
 
 | Layer | Tool | Where in the code |
 | --- | --- | --- |
-| Funnel | Next.js 15 on Vercel | `app/page.jsx` (all screens), content in `lib/funnel.js`, brand tokens in `app/globals.css` |
-| Coach chat | Scripted by default, LLM optional (Cloudflare Workers AI) | `lib/coaches.js`, `lib/safety.js`, `app/api/coach/route.js` |
-| Experiments | GrowthBook | features `quiz-length`, `paywall-model`, `chat-mode`, `upsell-offer` (`lib/funnel.js` has offline defaults) |
+| Funnel | Next.js 15 on Vercel | `app/page.jsx` (all screens), content in `lib/funnel.js`, styles in `app/globals.css` |
+| AI coach | Cloudflare Workers AI (Llama 3.3 70B), OpenAI-compatible | `app/api/coach/{questions,route,plan}`, prompts in `lib/coachPrompt.js`, fallbacks in `lib/fallbacks.js`, safety in `lib/safety.js` |
+| Experiments | GrowthBook | `quiz-length`, `entry-mode`, `chat-length`, `paywall-model`, `upsell-offer` (offline defaults in `lib/funnel.js`) |
 | Product analytics | Mixpanel (EU) | `lib/analytics.js` (one `track()` for everything) |
 | Ad tracking | GTM → Meta Pixel / GA4 | `app/layout.jsx` (every event is also pushed to `dataLayer`) |
-| Payments | Stripe Checkout, test mode | `app/api/checkout/route.js` (weekly plans or annual with 7-day trial) |
-| Creative angles | `?angle=overload|sunday|start|lost|private|voice` | `ANGLES` in `lib/funnel.js` |
-| Public IDs | Mixpanel token, GrowthBook client key, GTM ID, LLM endpoint | `lib/config.js` (env vars override) |
+| Payments | Stripe Checkout, test mode | `app/api/checkout/route.js` (intro price via one-time coupon, annual plan with 7-day trial) |
+| Simulation + read-out | Python | `scripts/simulate_traffic.py`, `scripts/analyse.py` → `data/report.md`, `scripts/mixpanel_import.py` |
+| Prompt tests | Python | `scripts/test_coach.py` (fixed set of messages, run against the live API) |
 
 Secrets live only in Vercel environment variables: `LLM_API_KEY` (Cloudflare token) and `STRIPE_SECRET_KEY` (`sk_test_…`).
-Without any keys the funnel still works: experiments are assigned locally, events go to the browser console,
-the chat is scripted and checkout shows a "simulate payment" screen.
+
+## Production notes (what this build does not do yet)
+- **Purchases are tracked from the browser** after Stripe redirects back. In production `purchase_completed`, renewals,
+  refunds and `trial_converted` come from a Stripe webhook (`checkout.session.completed`, `invoice.paid`, `charge.refunded`).
+- **Free LLM tier** covers roughly 15–20 full runs a day; after that the written fallbacks take over.
+- **Reviews on the paywall are labelled examples** until real ones exist.
 
 ## Run locally
 

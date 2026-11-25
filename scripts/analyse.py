@@ -1,7 +1,7 @@
-"""Read-out of the four Duskwise experiments from data/events.csv. SIMULATED DATA, not real users.
+"""Read-out of the five Duskwise experiments (funnel v2) from data/events.csv. SIMULATED DATA, not real users.
 
 Unit = user (distinct_id). A user belongs to an experiment from their first $experiment_started for it.
-quiz-length and chat-mode are exposed on the landing page (every visitor); paywall-model on the paywall;
+quiz-length, entry-mode and chat-length are exposed on the landing page (every visitor); paywall-model on the paywall;
 upsell-offer on /upsell (buyers only). Each test is read on the users it exposed.
 Proportions: normal-approx 95% CI + two-proportion z-test. Revenue: bootstrap 95% CI + Welch t-test.
 Revenue = purchase_completed + trial_converted + upsell_purchased (first charges only, no renewals).
@@ -13,6 +13,7 @@ import pandas as pd
 
 R = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 e = pd.read_csv(f"{R}/data/events.csv", low_memory=False, parse_dates=["time"])
+if "sim_version" in e: e = e[e.sim_version.astype(str).isin(["2", "2.0"])]
 END = e.time.max().normalize() + pd.Timedelta(days=1)
 MATURE = END - pd.Timedelta(days=8)  # trial (7 days) has had time to end for anyone exposed before this
 rng = np.random.default_rng(1)
@@ -21,7 +22,7 @@ say = lambda s="": lines.append(s)
 
 first = lambda name: e[e.event == name].groupby("distinct_id").time.min()
 U = pd.DataFrame({"landed": first("landing_viewed")})
-for col, ev in [("quiz", "quiz_started"), ("quiz_done", "coach_matched"), ("email_seen", "email_viewed"),
+for col, ev in [("quiz", "quiz_started"), ("write", "situation_written"), ("chat_done", "chat_completed"), ("quiz_done", "coach_matched"), ("email_seen", "email_viewed"),
                 ("email", "email_submitted"), ("paywall", "paywall_viewed"), ("checkout", "checkout_started"),
                 ("purchase", "purchase_completed"), ("upsell_seen", "upsell_viewed"), ("upsell", "upsell_purchased")]:
     U[col] = U.index.isin(first(ev).index)
@@ -70,11 +71,13 @@ TESTS = {  # experiment: (steps to show, primary metric, kind, secondary metrics
     "paywall-model": (["checkout", "purchase"], "rev_sub", "money",
                       [("checkout", "prop"), ("purchase", "prop"), ("rev_now", "money")],
                       "subscription revenue per paywall viewer, cohort exposed before %s (trials matured)" % MATURE.date()),
-    "chat-mode": (["quiz", "quiz_done", "email", "paywall", "checkout", "purchase"], "email", "prop",
-                  [("email|email_seen", "prop"), ("checkout|paywall", "prop"), ("rev", "money")], "email capture per visitor"),
+    "entry-mode": (["quiz", "write", "quiz_done", "email", "paywall", "checkout", "purchase"], "rev", "money",
+                   [("write|quiz", "prop"), ("checkout|paywall", "prop"), ("paywall", "prop")], "revenue per visitor"),
+    "chat-length": (["quiz", "quiz_done", "chat_done", "email", "paywall", "checkout", "purchase"], "rev", "money",
+                    [("chat_done|quiz_done", "prop"), ("email|email_seen", "prop"), ("checkout|paywall", "prop")], "revenue per visitor"),
     "upsell-offer": (["upsell"], "rev_upsell", "money", [("upsell", "prop")], "upsell revenue per upsell viewer"),
 }
-LABEL = {"quiz": "quiz start", "quiz_done": "quiz complete", "email": "email", "paywall": "paywall view",
+LABEL = {"quiz": "quiz start", "write": "situation submitted", "chat_done": "chat finished", "write|quiz": "situation | quiz start", "chat_done|quiz_done": "chat finished | coach matched", "quiz_done": "quiz complete", "email": "email", "paywall": "paywall view",
          "checkout": "checkout", "purchase": "purchase", "upsell": "upsell take", "rev": "rev/exposed user (all revenue)",
          "rev_sub": "sub rev/user", "rev_now": "rev at purchase", "rev_upsell": "upsell rev/viewer",
          "email|email_seen": "email | email screen", "checkout|paywall": "checkout | paywall view"}
@@ -88,7 +91,8 @@ say(f"Window: {e.time.min():%Y-%m-%d} to {(END - pd.Timedelta(days=1)):%Y-%m-%d}
 
 for exp, (steps, primary, kind, secondary, note) in TESTS.items():
     g = x[x["Experiment name"] == exp].set_index("distinct_id")
-    arms = list(dict.fromkeys(g.sort_values("Variant name").variation_value))
+    arms = [str(a) for a in dict.fromkeys(g.sort_values("Variant name").variation_value)]
+    g = g.assign(variation_value=g.variation_value.astype(str))
     D = U.join(g[["variation_value", "time"]].rename(columns={"variation_value": "arm", "time": "exposed"}), how="inner")
     if exp == "paywall-model": Dp = D[D.exposed < MATURE]
     else: Dp = D
@@ -144,7 +148,7 @@ for exp, (steps, primary, kind, secondary, note) in TESTS.items():
         OUT[exp]["quiz_completion"] = {a: float(tab[a]["in"].iloc[-1]) for a in arms}
 
 say(); say("## Caveats")
-say("- Four tests ran at once on the same users; assignment is independent (hash per experiment), so effects are read marginally.")
+say("- Five tests ran at once on the same users; assignment is independent (hash per experiment), so effects are read marginally.")
 say("- Weekly plans renew, annual trials convert later: first charges only are counted, which favours annual_trial. "
     "A fair paywall-model call needs renewal data (LTV), not just this window.")
 say("- upsell-offer has only the buyers as its sample; it is underpowered at this traffic and should keep running.")

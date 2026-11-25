@@ -1,208 +1,219 @@
-"""SIMULATED traffic for the Duskwise demo funnel. Not real users.
+"""SIMULATED traffic for the Duskwise funnel (v2: adaptive coach funnel). Not real users.
 
-Generates the same events the live funnel sends (app/page.jsx, app/upsell, app/done,
-app/providers.jsx) for 3 weeks of paid-social traffic with four concurrent experiments,
-each split 50/50 by a hash of the user id, independently of the others:
-  quiz-length   : short (15 questions)       vs long (24 questions)
-  paywall-model : weekly (1w / 4w / 12w)     vs annual_trial (7 days free, then $79.99/yr; or monthly)
-  chat-mode     : scripted turn-2 reply      vs llm-written turn-2 reply
-  upsell-offer  : single (Sunday review $9.99) vs bundle (voice + review $14.99)
-
-Every rate in RATES is an ASSUMPTION, not a measurement. The "true" effects built in are:
-  * long quiz: each extra question loses ~1.8% of people, so ~12% fewer reach the paywall,
-    but paywall->checkout is x1.18 (more invested, better-matched users). Net revenue per
-    visitor is flat to slightly positive (about +3%); the design does not hand the long quiz a big win.
-  * annual_trial: checkout start 17% vs 14% ($0 today), 50% of trials convert to $79.99
-    after 7 days. Revenue at purchase time is LOWER than weekly; higher only once trials mature.
-    Weekly renewals are NOT simulated (first charge only), which flatters annual_trial.
-  * llm chat: email capture +3pp (62% -> 65%) and paywall->checkout x1.05.
-  * bundle upsell: take rate ~15% vs ~20%, but $14.99 vs $9.99 per buyer.
-Quiz content, plans, prices and upsells are read from lib/funnel.js so they never drift.
+Emits the same events and properties the live app sends (app/page.jsx, app/upsell, app/done, app/providers.jsx)
+for 3 weeks of paid-social traffic with five experiments running at once, each a 50/50 split by user id:
+  quiz-length   short | long        general questions (4 vs 7 before the situation questions) + 3 vs 5 AI questions
+  entry-mode    write | tap         free text first vs tap a typical situation first
+  chat-length   2 | 4               coach turns in the chat
+  paywall-model weekly | annual_trial
+  upsell-offer  single | bundle
+Every assumed rate is in RATES below: these are the "true" effects the analysis should recover.
+Every event carries sim_version=2 so it can be told apart from the v1 import in the same Mixpanel project.
 Output: data/events.ndjson (Mixpanel /import format), data/events.csv, data/assumptions.json.
 """
-import csv, hashlib, json, os, random, subprocess, uuid
+import csv, hashlib, json, os, random, uuid
 from datetime import datetime, timedelta, timezone
 
-SEED = 2026
-START = datetime(2026, 10, 27, tzinfo=timezone.utc)
+SEED = 2027
+random.seed(SEED)
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+OUT = os.path.join(ROOT, "data"); os.makedirs(OUT, exist_ok=True)
+START = datetime(2026, 11, 2, 8, tzinfo=timezone.utc)
 DAYS = 21
-END = START + timedelta(days=DAYS)
-VISITS_PER_DAY = (1200, 1700)
+VISITS = (1200, 1700)
 
 RATES = {
-    "angle_mix": {"default": .10, "overload": .22, "sunday": .16, "start": .18, "lost": .12, "private": .10, "voice": .12},
-    "start_quiz": {"default": .48, "overload": .60, "sunday": .57, "start": .55, "lost": .52, "private": .50, "voice": .58},
-    # chance to answer each quiz screen and move on; anything not listed uses step_default
-    "step_default": .986, "step_long_only": .982,
-    "step_override": {"pile": .95, "tried": .975, "dropped": .98, "info_full": .99, "age": .975},
-    "age_skip": .25,
-    "match_to_chat": .93,           # coach match screen -> starts the chat
-    "coach_switch": .07,            # picks a different coach on the match screen
-    "chat_reply_1": .86,            # types what's on their plate
-    "chat_reply_3": {"scripted": .94, "llm": .96},
-    "llm_fallback": .03,            # llm arm: model error -> scripted fallback (reply_mode "fallback")
-    "loader_answer": {"yes": .55, "no": .35},   # rest ignore the micro-question
-    "loader_to_email": .97,
-    "email_submit": {"scripted": .62, "llm": .65},
-    "marketing_opt_in": .38,
-    "result_to_paywall": .93,
-    "paywall_to_checkout": {"weekly": .14, "annual_trial": .17},
-    "checkout_lift": {"quiz-length": {"short": 1.0, "long": 1.18}, "chat-mode": {"scripted": 1.0, "llm": 1.05}},
+    "angle_mix": {"overload": .26, "sunday": .12, "start": .18, "lost": .16, "private": .12, "voice": .08, "default": .08},
+    "start_quiz": .58,                     # landing -> taps a reason card
+    "preselected_bonus": .05,              # +5pp when the ad angle preselects the reason card
+    "write_done": {"write": .74, "tap": .86},   # reason -> situation submitted
+    "tap_how": {"tap": .78, "typed": .22},      # in the tap arm, share who still write their own
+    "write_how": {"typed": .63, "example": .37},
+    "gen_q_continue": .975,                # per general question
+    "ai_q_continue": .985,                 # per AI-written question (higher: about their own situation)
+    "breather_continue": .97,
+    "name_continue": .95,
+    "voice_continue": .97,
+    "match_to_chat": .93,
+    "chat_reply": .86,                     # user sends each reply (per turn after the first)
+    "loader_done": .96,
+    "email": {"base": .60, "chat4": .04, "long": .02, "tap": -.02},   # email submitted | saw email
+    "opt_in": .38,
+    "plan_to_paywall": .93,                # plan1 -> plan2 -> deal -> paywall
+    "checkout": {"weekly": .14, "annual_trial": .17},
+    "checkout_mult": {"long": 1.15, "chat4": 1.10, "tap": .95},
     "checkout_to_purchase": {"weekly": .72, "annual_trial": .76},
-    "plan_mix": {"weekly": {"1w": .45, "4w": .40, "12w": .15}, "annual_trial": {"year": .72, "month": .28}},
-    "trial_to_paid": .50,           # after the 7-day trial, if it ends inside the window
-    "upsell_checkout": {"single": .25, "bundle": .19},
-    "upsell_checkout_to_paid": .80,
-    "country_mix": {"US": .70, "GB": .11, "CA": .10, "AU": .09},
-    "os_mix": {"iOS": .63, "Android": .37},
+    "timer_late": .16,                     # buyers who pay after the 10-minute intro window (full price)
+    "plan_mix": {"weekly": {"1w": .40, "4w": .45, "12w": .15}, "annual_trial": {"year": .72, "month": .28}},
+    "trial_to_paid": .50,
+    "return_visit": .22,                   # paywall non-buyers who come back within 3 days -> downsell
+    "downsell_buy": .07,
+    "upsell": {"single": .21, "bundle": .15},
+    "llm_fallback": .04,                   # model calls that fall back to the written fallback
 }
-EXPERIMENTS = {"quiz-length": ["short", "long"], "paywall-model": ["weekly", "annual_trial"],
-               "chat-mode": ["scripted", "llm"], "upsell-offer": ["single", "bundle"]}
-
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-OUT = os.path.join(ROOT, "data")
-JS = """import('%s/lib/funnel.js').then(m => console.log(JSON.stringify({
-  questions: m.QUESTIONS.map(q => ({id: q.id, section: q.section || 'info', type: q.type, long: !!q.long,
-    options: (q.options || []).map(o => Array.isArray(o) ? o[0] : o)})),
-  angles: Object.keys(m.ANGLES), paywalls: m.PAYWALLS, upsells: m.UPSELLS})))""" % ROOT
-F = json.loads(subprocess.run(["node", "-e", JS], capture_output=True, text=True, check=True).stdout)
-assert set(RATES["angle_mix"]) == set(F["angles"]), "angle_mix must use the ANGLES keys from lib/funnel.js"
-PLANS = {p["id"]: p for m in F["paywalls"].values() for p in m["plans"]}
-
-rng = random.Random(SEED)
-events = []
+PRICES = {"1w": (6.93, 13.86), "4w": (19.99, 39.99), "12w": (39.99, 79.99), "year": (0.0, 79.99), "month": (19.99, 19.99), "4w_back": (14.99, 39.99)}
+UPSELL = {"single": ("sunday_review", 9.99), "bundle": ("voice_review", 14.99)}
+REASON_OF = {"overload": "overload", "sunday": "overload", "start": "start", "lost": "lost", "private": "talk"}
+REASONS = ["overload", "start", "lost", "talk"]
+GEN_SHORT = ["age", "since", "tried", "stuck"]
+GEN_LONG = GEN_SHORT + ["overthink", "energy", "support"]
+P2_SHORT = ["voice", "time", "goal_when"]
+P2_LONG = ["voice", "time", "checkin", "goal_when"]
+COACH_W = {"nora": .24, "ines": .30, "max": .18, "theo": .28}
 
 
 def pick(d):
-    r, acc = rng.random(), 0
-    for k, v in d.items():
-        acc += v
+    r, acc = random.random(), 0
+    for k, w in d.items():
+        acc += w
         if r < acc: return k
     return k
 
 
-def bucket(exp, uid):  # deterministic 50/50 split, independent per experiment
-    return EXPERIMENTS[exp][int(hashlib.md5(f"{exp}:{uid}".encode()).hexdigest(), 16) % 2]
+def bucket(exp, uid, a, b):  # deterministic 50/50, independent per experiment
+    return a if int(hashlib.md5(f"{exp}:{uid}".encode()).hexdigest(), 16) % 2 == 0 else b
 
 
-def match_coach(answers):  # same rule as coachInputs() + matchCoach()
-    calm = answers.get("advice", "").startswith("“Take a breath")
-    practical = answers.get("need") != "Someone in my corner"
-    return ("ines" if practical else "nora") if calm else ("theo" if practical else "max")
+events = []
 
 
 class User:
     def __init__(self, t):
-        self.id = str(uuid.UUID(int=rng.getrandbits(128), version=4))
-        self.t = t
-        angle = pick(RATES["angle_mix"])
-        self.base = {"angle": angle, "utm_source": "meta", "utm_campaign": f"duskwise_{angle}",
-                     "$os": pick(RATES["os_mix"]), "mp_country_code": pick(RATES["country_mix"])}
-        self.arm = {e: bucket(e, self.id) for e in EXPERIMENTS}
+        self.id = str(uuid.UUID(int=random.getrandbits(128), version=4)); self.t = t
+        self.angle = pick(RATES["angle_mix"])
+        self.os = "iOS" if random.random() < .62 else "Android"
+        self.cc = pick({"US": .70, "GB": .11, "CA": .10, "AU": .09})
 
-    def ev(self, name, wait=(1, 5), at=None, **props):
-        if at is None: self.t += timedelta(seconds=rng.randint(*wait))
-        when = at or self.t
-        events.append({"event": name, "properties": {
-            "time": int(when.timestamp() * 1000), "distinct_id": self.id, "$insert_id": "%032x" % rng.getrandbits(128),
-            "simulated": True, **self.base, **props}})
+    def ev(self, name, wait=(1, 6), **props):
+        self.t += timedelta(seconds=random.uniform(*wait))
+        p = {"time": int(self.t.timestamp()), "distinct_id": self.id, "$insert_id": "%032x" % random.getrandbits(128),
+             "angle": self.angle, "utm_source": "meta", "utm_campaign": f"duskwise_{self.angle}",
+             "$os": self.os, "mp_country_code": self.cc, "sim_version": 2, "simulated": True, **props}
+        events.append({"event": name, "properties": p})
 
-    def expose(self, exp):  # GrowthBook trackingCallback in app/providers.jsx
-        v = self.arm[exp]
-        self.ev("$experiment_started", (0, 1), **{"Experiment name": exp, "Variant name": EXPERIMENTS[exp].index(v),
-                                                   "variation_value": v, "$source": "growthbook"})
+    def expose(self, exp, value):  # GrowthBook trackingCallback (app/providers.jsx)
+        variants = {"quiz-length": ["short", "long"], "entry-mode": ["write", "tap"], "chat-length": ["2", "4"],
+                    "paywall-model": ["weekly", "annual_trial"], "upsell-offer": ["single", "bundle"]}[exp]
+        self.ev("$experiment_started", (0, 1), **{"Experiment name": exp, "Variant name": variants.index(value),
+                                                    "variation_value": value, "$source": "growthbook"})
 
 
 def run(u):
-    ql, chat, pm, up = (u.arm[e] for e in ("quiz-length", "chat-mode", "paywall-model", "upsell-offer"))
-    u.expose("quiz-length"); u.expose("chat-mode")  # both read on the first render of app/page.jsx
-    u.ev("landing_viewed", (0, 1), angle=u.base["angle"])
-    if rng.random() > RATES["start_quiz"][u.base["angle"]]: return
-    u.ev("quiz_started", (4, 25), angle=u.base["angle"], quiz_length=ql)
-    answers = {}
-    qs = [q for q in F["questions"] if ql == "long" or not q["long"]]
-    for i, q in enumerate(qs):
-        p = RATES["step_override"].get(q["id"], RATES["step_long_only"] if q["long"] else RATES["step_default"])
-        if rng.random() > p: return
-        if q["type"] == "info": ans = None
-        elif q["type"] == "multi": ans = ",".join(rng.sample(q["options"], rng.randint(1, 3)))
-        elif q["id"] == "age" and rng.random() < RATES["age_skip"]: ans = "skipped"
-        else: ans = rng.choice(q["options"])
-        answers[q["id"]] = ans or ""
-        u.ev("quiz_step_completed", (3, 14), step=i + 1, step_id=q["id"], section=q["section"], quiz_length=ql, answer=ans)
-    coach = match_coach(answers)
+    ql = bucket("quiz-length", u.id, "short", "long")
+    em = bucket("entry-mode", u.id, "write", "tap")
+    cl = bucket("chat-length", u.id, "2", "4")
+    u.ev("landing_viewed", (0, 1))
+    for exp, v in [("quiz-length", ql), ("chat-length", cl), ("entry-mode", em)]: u.expose(exp, v)
+    pre = REASON_OF.get(u.angle)
+    if random.random() > RATES["start_quiz"] + (RATES["preselected_bonus"] if pre else 0): return
+    reason = pre if pre and random.random() < .8 else random.choice(REASONS)
+    u.ev("quiz_started", (3, 15), angle=u.angle, reason=reason, preselected=reason == pre, quiz_length=ql, entry_mode=em)
+    if random.random() > RATES["write_done"][em]: return
+    how = pick(RATES["tap_how"] if em == "tap" else RATES["write_how"])
+    u.ev("situation_written", (8, 60) if how == "typed" else (3, 10), length=random.randint(40, 220) if how == "typed" else 52, reason=reason, how=how, entry_mode=em)
+    n_ai = 5 if ql == "long" else 3
+    u.ev("coach_questions_generated", (0, 1), mode="fallback" if random.random() < RATES["llm_fallback"] else "llm", ms=random.randint(2500, 7000), n=n_ai, crisis=False)
+    step = 0
+    for qid in (GEN_LONG if ql == "long" else GEN_SHORT):
+        if random.random() > RATES["gen_q_continue"]: return
+        step += 1; u.ev("quiz_step_completed", (3, 9), step=step, step_id=qid, quiz_length=ql)
+    if random.random() > RATES["breather_continue"]: return
+    u.ev("breather_viewed", (1, 3), which="reflection")
+    for i in range(n_ai):
+        if random.random() > RATES["ai_q_continue"]: return
+        step += 1; u.ev("quiz_step_completed", (4, 12), step=step, step_id=f"dyn_{i + 1}", quiz_length=ql)
+    u.ev("breather_viewed", (1, 3), which="summary")
+    if random.random() > RATES["name_continue"]: return
+    u.ev("name_submitted", (3, 10))
+    for qid in (P2_LONG if ql == "long" else P2_SHORT):
+        if random.random() > (RATES["voice_continue"] if qid == "voice" else RATES["gen_q_continue"]): return
+        step += 1; u.ev("quiz_step_completed", (3, 9), step=step, step_id=qid, quiz_length=ql)
+    coach = pick(COACH_W)
     u.ev("coach_matched", (1, 2), coach=coach)
-    u.ev("coach_match_viewed", (0, 1), coach=coach)
-    if rng.random() < RATES["coach_switch"]:
-        new = rng.choice([c for c in ("nora", "ines", "max", "theo") if c != coach])
-        u.ev("coach_switched", (3, 12), **{"from": coach, "to": new}); coach = new
-    if rng.random() > RATES["match_to_chat"]: return
-    say = lambda turn, mode: u.ev("coach_message_shown", (1, 4), turn=turn, coach=coach, chat_mode=chat, reply_mode=mode)
-    say(1, "scripted")
-    if rng.random() > RATES["chat_reply_1"]: return
-    u.ev("coach_reply_sent", (10, 60), turn=1, coach=coach, chat_mode=chat, chars=rng.randint(12, 180))
-    say(2, "scripted" if chat == "scripted" else ("fallback" if rng.random() < RATES["llm_fallback"] else "llm"))
-    say(3, "scripted")
-    if rng.random() > RATES["chat_reply_3"][chat]: return
-    u.ev("coach_reply_sent", (3, 15), turn=3, coach=coach, chat_mode=chat, chars=rng.choice([10, 6, 11]))
-    a = pick({**RATES["loader_answer"], "none": 1})
-    if a != "none": u.ev("loader_question_answered", (3, 8), answer=a)
-    if rng.random() > RATES["loader_to_email"]: return
-    u.ev("email_viewed", (2, 6))
-    if rng.random() > RATES["email_submit"][chat]: return
-    u.ev("email_submitted", (8, 40), marketing_opt_in=rng.random() < RATES["marketing_opt_in"])
-    u.ev("result_viewed", (1, 3), coach=coach)
-    if rng.random() > RATES["result_to_paywall"]: return
-    u.expose("paywall-model")  # useFeatureValue in <Paywall>
-    u.ev("paywall_viewed", (0, 1), paywall_model=pm)
-    lift = RATES["checkout_lift"]["quiz-length"][ql] * RATES["checkout_lift"]["chat-mode"][chat]
-    if rng.random() > RATES["paywall_to_checkout"][pm] * lift: return
-    plan = PLANS[pick(RATES["plan_mix"][pm])]
-    if plan["id"] != F["paywalls"][pm]["default"] or rng.random() < .3:
-        u.ev("plan_selected", (5, 40), plan=plan["id"], paywall_model=pm)
-    u.ev("checkout_started", (3, 20), plan=plan["id"], price=plan["price"], paywall_model=pm)
-    if rng.random() > RATES["checkout_to_purchase"][pm]: return
-    trial = bool(plan.get("trialDays"))
-    u.ev("purchase_completed", (40, 180), plan=plan["id"], revenue=0 if trial else plan["price"], currency="USD",
-         trial=trial, paywall_model=pm, mode="simulated")
-    if trial:
-        ends = u.t + timedelta(days=plan["trialDays"])
-        if ends < END and rng.random() < RATES["trial_to_paid"]:
-            u.ev("trial_converted", at=ends, plan=plan["id"], revenue=plan["price"], currency="USD", paywall_model=pm)
-    offer = F["upsells"][up]
-    u.expose("upsell-offer")  # useFeatureValue on /upsell
-    u.ev("upsell_viewed", (2, 5), offer=offer["id"], variant=up)
-    if rng.random() < RATES["upsell_checkout"][up]:
-        u.ev("upsell_checkout_started", (5, 30), offer=offer["id"], price=offer["price"], variant=up)
-        if rng.random() < RATES["upsell_checkout_to_paid"]:
-            u.ev("upsell_purchased", (30, 120), offer=offer["id"], revenue=offer["price"], currency="USD", variant=up, mode="simulated")
-        else: return  # left on the payment screen
+    if random.random() < .07:
+        coach = random.choice([c for c in COACH_W if c != coach]); u.ev("coach_switched", (2, 6), coach=coach)
+    if random.random() > RATES["match_to_chat"]: return
+    turns = int(cl)
+    for turn in range(1, turns + 1):
+        mode = "fallback" if random.random() < RATES["llm_fallback"] else "llm"
+        u.ev("coach_message_shown", (2, 5), coach=coach, turn=turn, mode=mode, ms=random.randint(1200, 4200), chat_length=turns)
+        if turn == turns: break
+        if random.random() > RATES["chat_reply"]: return
+        u.ev("coach_reply_sent", (10, 45), coach=coach, turn=turn, quick=random.random() < .35, chat_length=turns)
+    u.ev("chat_completed", (2, 6), coach=coach, chat_length=turns)
+    u.ev("plan_generated", (3, 9), mode="fallback" if random.random() < RATES["llm_fallback"] else "llm", ms=random.randint(5000, 14000))
+    for q in ["commit_time", "sunday_checkin"]:
+        u.ev("loader_answer", (2, 4), q=q, a="yes" if random.random() < .78 else "no")
+    if random.random() > RATES["loader_done"]: return
+    u.ev("email_viewed", (1, 2))
+    r = RATES["email"]
+    p_email = r["base"] + (r["chat4"] if turns == 4 else 0) + (r["long"] if ql == "long" else 0) + (r["tap"] if em == "tap" else 0)
+    if random.random() > p_email: return
+    u.ev("email_submitted", (8, 25), marketing_opt_in=random.random() < RATES["opt_in"])
+    u.ev("result_viewed", (2, 4), mode="llm")
+    if random.random() > RATES["plan_to_paywall"]: return
+    u.ev("deal_signed", (10, 30))
+    model = bucket("paywall-model", u.id, "weekly", "annual_trial")
+    u.expose("paywall-model", model)
+    u.ev("paywall_viewed", (1, 2), paywall_model=model)
+    m = RATES["checkout_mult"]
+    p_co = RATES["checkout"][model] * (m["long"] if ql == "long" else 1) * (m["chat4"] if turns == 4 else 1) * (m["tap"] if em == "tap" else 1)
+    if random.random() < p_co:
+        plan = pick(RATES["plan_mix"][model])
+        intro = random.random() > RATES["timer_late"]
+        if not intro: u.ev("paywall_timer_expired", (600, 900))
+        if plan not in ("4w", "year"): u.ev("plan_selected", (2, 8), plan=plan, paywall_model=model)
+        price, full = PRICES[plan]
+        today = 0.0 if plan == "year" else (price if intro else full)
+        u.ev("checkout_started", (5, 40), plan=plan, price=today, paywall_model=model, intro=intro)
+        if random.random() < RATES["checkout_to_purchase"][model]:
+            u.ev("purchase_completed", (40, 120), plan=plan, revenue=today, currency="USD", trial=plan == "year", intro=intro)
+            if plan == "year":
+                paid_at = u.t + timedelta(days=7)
+                if paid_at < START + timedelta(days=DAYS) and random.random() < RATES["trial_to_paid"]:
+                    saved = u.t; u.t = paid_at; u.ev("trial_converted", (0, 60), plan="year", revenue=79.99, currency="USD"); u.t = saved
+            upsell(u)
+            return
+    # left the paywall: some come back later and see the downsell (no timer)
+    if random.random() < RATES["return_visit"]:
+        u.t += timedelta(hours=random.uniform(6, 72))
+        if u.t > START + timedelta(days=DAYS): return
+        u.ev("downsell_viewed", (1, 3), paywall_model="downsell")
+        if random.random() < RATES["downsell_buy"]:
+            price, _ = PRICES["4w_back"]
+            u.ev("checkout_started", (5, 30), plan="4w_back", price=price, paywall_model="downsell", intro=True)
+            u.ev("purchase_completed", (40, 120), plan="4w_back", revenue=price, currency="USD", trial=False, intro=True)
+            upsell(u)
+
+
+def upsell(u):
+    v = bucket("upsell-offer", u.id, "single", "bundle")
+    u.expose("upsell-offer", v)
+    offer, price = UPSELL[v]
+    u.ev("upsell_viewed", (2, 5), offer=offer, variant=v)
+    if random.random() < RATES["upsell"][v]:
+        u.ev("upsell_checkout_started", (3, 10), offer=offer, price=price, variant=v)
+        u.ev("upsell_purchased", (30, 90), offer=offer, revenue=price, variant=v)
     else:
-        u.ev("upsell_declined", (4, 30), offer=offer["id"], variant=up)
-    u.ev("onboarding_reached", (1, 3))
+        u.ev("upsell_declined", (2, 6), offer=offer, variant=v)
+    u.ev("onboarding_reached", (2, 5))
 
 
+n_users = 0
 for d in range(DAYS):
-    day = START + timedelta(days=d)
-    for _ in range(rng.randint(*VISITS_PER_DAY)):
-        run(User(day + timedelta(seconds=rng.randint(0, 86399))))
+    for _ in range(random.randint(*VISITS)):
+        t = START + timedelta(days=d, seconds=random.uniform(0, 86400 - 3600))
+        run(User(t)); n_users += 1
 
-events = [e for e in events if e["properties"]["time"] < END.timestamp() * 1000]
 events.sort(key=lambda e: e["properties"]["time"])
-os.makedirs(OUT, exist_ok=True)
 with open(os.path.join(OUT, "events.ndjson"), "w") as f:
-    for e in events: f.write(json.dumps(e, ensure_ascii=False) + "\n")
-cols = ["event", "time", "distinct_id", "angle", "utm_source", "utm_campaign", "$os", "mp_country_code",
-        "Experiment name", "Variant name", "variation_value", "quiz_length", "step", "step_id", "section", "answer",
-        "coach", "turn", "chat_mode", "reply_mode", "chars", "marketing_opt_in", "paywall_model", "plan", "price",
-        "revenue", "currency", "trial", "offer", "variant"]
+    for e in events: f.write(json.dumps(e) + "\n")
+cols = sorted({k for e in events for k in e["properties"]} - {"$insert_id"})
 with open(os.path.join(OUT, "events.csv"), "w", newline="") as f:
-    w = csv.writer(f); w.writerow(cols)
+    w = csv.writer(f); w.writerow(["event"] + [c if c != "time" else "time" for c in cols])
     for e in events:
         p = e["properties"]
-        w.writerow([e["event"], datetime.fromtimestamp(p["time"] / 1000, timezone.utc).isoformat()] +
-                   ["" if p.get(c) is None else p[c] for c in cols[2:]])
-json.dump({"seed": SEED, "start": START.isoformat(), "days": DAYS, "experiments": EXPERIMENTS, "rates": RATES},
+        w.writerow([e["event"]] + [datetime.fromtimestamp(p["time"], timezone.utc).isoformat() if c == "time" else p.get(c, "") for c in cols])
+json.dump({"seed": SEED, "start": START.isoformat(), "days": DAYS, "users": n_users, "events": len(events), "rates": RATES, "prices": PRICES},
           open(os.path.join(OUT, "assumptions.json"), "w"), indent=1)
-print(f"SIMULATED: {len(events):,} events, {len({e['properties']['distinct_id'] for e in events}):,} visitors, "
-      f"{START:%Y-%m-%d} to {END - timedelta(days=1):%Y-%m-%d}")
+print(f"{n_users} simulated visitors, {len(events)} events -> data/events.ndjson, data/events.csv")

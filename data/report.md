@@ -2,103 +2,115 @@
 > Not real users. Use it to show the method, not as evidence about the product.
 
 # Duskwise experiment read-out (simulated)
-Window: 2026-10-27 to 2026-11-16 · 29,982 visitors · 494,184 events · 614 purchases (241 trials, 77 converted so far)
+Window: 2026-11-02 to 2026-11-23 · 28,264 visitors · 447,401 events · 503 purchases (192 trials, 64 converted so far)
 
 ## quiz-length: short vs long
-Primary metric: revenue per visitor (all revenue incl. matured trial conversions and upsells).  SRM check p=0.98 (14,993 vs 14,989 exposed)
+Primary metric: revenue per visitor (all revenue incl. matured trial conversions and upsells).  SRM check p=0.75 (14,105 vs 14,159 exposed)
 
 | metric | short | long |
 |---|---|---|
-| users exposed | 14,993 | 14,989 |
-| quiz start | 55.36% | 55.85% |
-| quiz complete | 41.29% | 35.74% |
-| email | 18.91% | 16.60% |
-| paywall view | 17.48% | 15.48% |
-| checkout | 2.75% | 2.90% |
-| purchase | 2.03% | 2.07% |
-| rev/exposed user (all revenue) (95% CI) | $0.461 [0.390, 0.539] | $0.461 [0.387, 0.539] |
-| rev at purchase (95% CI) | $0.216 [0.182, 0.252] | $0.226 [0.191, 0.262] |
-- PRIMARY rev/exposed user (all revenue): $0.461 -> $0.461, diff -0.000$ [-0.108$, +0.109$], lift -0.0%, p=0.998 (Welch t (normal approx), bootstrap CI; n=14,993/14,989)
-- paywall view: 17.48% -> 15.48%, diff -2.00pp [-2.84pp, -1.16pp], lift -11.4%, p=0.000 (two-proportion z; n=14,993/14,989)
-- checkout | paywall view: 15.72% -> 18.70%, diff +2.98pp [+0.87pp, +5.09pp], lift +19.0%, p=0.006 (two-proportion z; n=2,621/2,321)
+| users exposed | 14,105 | 14,159 |
+| quiz start | 62.08% | 61.97% |
+| quiz complete | 36.53% | 32.12% |
+| email | 14.76% | 13.74% |
+| paywall view | 13.73% | 12.66% |
+| checkout | 2.23% | 2.58% |
+| purchase | 1.60% | 1.96% |
+| rev/exposed user (all revenue) (95% CI) | $0.381 [0.312, 0.453] | $0.506 [0.428, 0.596] |
+| rev at purchase (95% CI) | $0.168 [0.136, 0.204] | $0.279 [0.228, 0.327] |
+- PRIMARY rev/exposed user (all revenue): $0.381 -> $0.506, diff +0.125$ [+0.014$, +0.237$], lift +32.8%, p=0.030 (Welch t (normal approx), bootstrap CI; n=14,105/14,159)
+- paywall view: 13.73% -> 12.66%, diff -1.07pp [-1.86pp, -0.28pp], lift -7.8%, p=0.008 (two-proportion z; n=14,105/14,159)
+- checkout | paywall view: 16.26% -> 20.36%, diff +4.09pp [+1.61pp, +6.58pp], lift +25.2%, p=0.001 (two-proportion z; n=1,937/1,793)
 
 Quiz drop-off per screen (share of quiz starters still in, and loss at that screen):
 
 | step | short: question | short: still in | short: lost | long: question | long: still in | long: lost |
 |---|---|---|---|---|---|---|
-| 1 | pile | 94.6% | 5.4% | pile | 94.7% | 5.3% |
-| 2 | falls_apart | 93.0% | 1.7% | falls_apart | 93.5% | 1.3% |
-| 3 | undone | 91.7% | 1.5% | undone | 92.1% | 1.4% |
-| 4 | tried | 89.2% | 2.7% | household | 90.4% | 1.8% |
-| 5 | dropped | 87.6% | 1.8% | work_hours | 88.8% | 1.8% |
-| 6 | info_full | 86.6% | 1.1% | tried | 86.6% | 2.5% |
-| 7 | start | 85.2% | 1.6% | dropped | 85.0% | 1.8% |
-| 8 | freeze | 84.0% | 1.5% | info_full | 84.3% | 0.9% |
-| 9 | time | 82.9% | 1.3% | start | 83.0% | 1.5% |
-| 10 | nudge | 81.7% | 1.4% | freeze | 82.1% | 1.1% |
-| 11 | advice | 80.5% | 1.5% | energy | 80.4% | 2.1% |
-| 12 | need | 79.3% | 1.5% | sleep | 78.9% | 1.9% |
-| 13 | tuneout | 78.2% | 1.4% | putoff | 77.6% | 1.6% |
-| 14 | matters | 77.4% | 1.0% | time | 76.5% | 1.4% |
-| 15 | age | 75.6% | 2.3% | nudge | 75.4% | 1.4% |
-| 16 | goal | 74.6% | 1.3% | weekend | 74.1% | 1.7% |
-| 17 |  |  |  | advice | 73.1% | 1.4% |
-| 18 |  |  |  | need | 72.1% | 1.4% |
-| 19 |  |  |  | tuneout | 71.0% | 1.5% |
-| 20 |  |  |  | coached | 69.8% | 1.6% |
-| 21 |  |  |  | motivation | 68.7% | 1.7% |
-| 22 |  |  |  | notifications | 67.5% | 1.6% |
-| 23 |  |  |  | matters | 66.5% | 1.5% |
-| 24 |  |  |  | age | 64.8% | 2.6% |
-| 25 |  |  |  | goal | 64.0% | 1.3% |
+| 1 | age | 78.1% | 21.9% | age | 77.6% | 22.4% |
+| 2 | since | 76.4% | 2.2% | since | 75.8% | 2.4% |
+| 3 | tried | 74.7% | 2.2% | tried | 73.8% | 2.6% |
+| 4 | stuck | 72.8% | 2.6% | stuck | 72.0% | 2.5% |
+| 5 | dyn_1 | 69.4% | 4.6% | overthink | 70.0% | 2.8% |
+| 6 | dyn_2 | 68.2% | 1.7% | energy | 68.4% | 2.3% |
+| 7 | dyn_3 | 67.3% | 1.3% | support | 66.7% | 2.4% |
+| 8 | voice | 61.9% | 8.0% | dyn_1 | 63.7% | 4.6% |
+| 9 | time | 60.6% | 2.2% | dyn_2 | 62.7% | 1.4% |
+| 10 | goal_when | 58.8% | 2.8% | dyn_3 | 61.8% | 1.5% |
+| 11 |  |  |  | dyn_4 | 61.0% | 1.3% |
+| 12 |  |  |  | dyn_5 | 60.1% | 1.4% |
+| 13 |  |  |  | voice | 55.8% | 7.2% |
+| 14 |  |  |  | time | 54.5% | 2.4% |
+| 15 |  |  |  | checkin | 53.1% | 2.6% |
+| 16 |  |  |  | goal_when | 51.8% | 2.4% |
 
 ## paywall-model: weekly vs annual_trial
-Primary metric: subscription revenue per paywall viewer, cohort exposed before 2026-11-09 (trials matured).  SRM check p=0.57 (2,451 vs 2,491 exposed)
+Primary metric: subscription revenue per paywall viewer, cohort exposed before 2026-11-16 (trials matured).  SRM check p=0.90 (1,861 vs 1,869 exposed)
 
 | metric | weekly | annual_trial |
 |---|---|---|
-| users exposed | 2,451 | 2,491 |
-| checkout | 16.24% | 17.98% |
-| purchase | 11.38% | 13.45% |
-| rev/exposed user (all revenue) (95% CI) | $2.130 [1.846, 2.412] | $3.458 [2.882, 4.056] |
-| rev at purchase (95% CI) | $1.939 [1.688, 2.192] | $0.754 [0.610, 0.907] |
-| trial -> paid (matured) | n/a | 47.6% of 145 |
-- PRIMARY sub rev/user (matured cohort): $1.965 -> $4.317, diff +2.352$ [+1.445$, +3.264$], lift +119.7%, p=0.000 (Welch t (normal approx), bootstrap CI; n=1,549/1,547)
-- checkout: 16.24% -> 17.98%, diff +1.75pp [-0.35pp, +3.85pp], lift +10.8%, p=0.103 (two-proportion z; n=2,451/2,491)
-- purchase: 11.38% -> 13.45%, diff +2.07pp [+0.23pp, +3.90pp], lift +18.1%, p=0.028 (two-proportion z; n=2,451/2,491)
-- rev at purchase: $1.939 -> $0.754, diff -1.185$ [-1.475$, -0.867$], lift -61.1%, p=0.000 (Welch t (normal approx), bootstrap CI; n=2,451/2,491)
+| users exposed | 1,861 | 1,869 |
+| checkout | 17.03% | 19.42% |
+| purchase | 12.36% | 14.61% |
+| rev/exposed user (all revenue) (95% CI) | $2.809 [2.358, 3.233] | $3.918 [3.239, 4.624] |
+| rev at purchase (95% CI) | $2.576 [2.206, 2.990] | $0.821 [0.655, 1.003] |
+| trial -> paid (matured) | n/a | 50.0% of 124 |
+- PRIMARY sub rev/user (matured cohort): $2.752 -> $4.982, diff +2.230$ [+1.127$, +3.426$], lift +81.0%, p=0.000 (Welch t (normal approx), bootstrap CI; n=1,206/1,188)
+- checkout: 17.03% -> 19.42%, diff +2.39pp [-0.09pp, +4.86pp], lift +14.0%, p=0.059 (two-proportion z; n=1,861/1,869)
+- purchase: 12.36% -> 14.61%, diff +2.25pp [+0.06pp, +4.44pp], lift +18.2%, p=0.044 (two-proportion z; n=1,861/1,869)
+- rev at purchase: $2.576 -> $0.821, diff -1.755$ [-2.179$, -1.315$], lift -68.1%, p=0.000 (Welch t (normal approx), bootstrap CI; n=1,861/1,869)
 
-## chat-mode: scripted vs llm
-Primary metric: email capture per visitor.  SRM check p=0.05 (15,163 vs 14,819 exposed)
+## entry-mode: write vs tap
+Primary metric: revenue per visitor.  SRM check p=0.87 (14,118 vs 14,146 exposed)
 
-| metric | scripted | llm |
+| metric | write | tap |
 |---|---|---|
-| users exposed | 15,163 | 14,819 |
-| quiz start | 55.69% | 55.51% |
-| quiz complete | 38.22% | 38.82% |
-| email | 16.97% | 18.56% |
-| paywall view | 15.76% | 17.23% |
-| checkout | 2.57% | 3.08% |
-| purchase | 1.87% | 2.23% |
-| rev/exposed user (all revenue) (95% CI) | $0.443 [0.368, 0.520] | $0.481 [0.403, 0.556] |
-| rev at purchase (95% CI) | $0.188 [0.157, 0.221] | $0.255 [0.218, 0.294] |
-- PRIMARY email: 16.97% -> 18.56%, diff +1.59pp [+0.72pp, +2.45pp], lift +9.4%, p=0.000 (two-proportion z; n=15,163/14,819)
-- email | email screen: 61.45% -> 64.71%, diff +3.25pp [+1.20pp, +5.31pp], lift +5.3%, p=0.002 (two-proportion z; n=4,187/4,250)
-- checkout | paywall view: 16.28% -> 17.90%, diff +1.62pp [-0.48pp, +3.72pp], lift +9.9%, p=0.131 (two-proportion z; n=2,389/2,553)
-- rev/exposed user (all revenue): $0.443 -> $0.481, diff +0.038$ [-0.075$, +0.148$], lift +8.6%, p=0.495 (Welch t (normal approx), bootstrap CI; n=15,163/14,819)
+| users exposed | 14,118 | 14,146 |
+| quiz start | 61.94% | 62.12% |
+| situation submitted | 45.72% | 53.51% |
+| quiz complete | 31.72% | 36.92% |
+| email | 13.46% | 15.04% |
+| paywall view | 12.50% | 13.89% |
+| checkout | 2.27% | 2.54% |
+| purchase | 1.66% | 1.89% |
+| rev/exposed user (all revenue) (95% CI) | $0.401 [0.329, 0.478] | $0.487 [0.401, 0.576] |
+| rev at purchase (95% CI) | $0.220 [0.181, 0.266] | $0.228 [0.184, 0.269] |
+- PRIMARY rev/exposed user (all revenue): $0.401 -> $0.487, diff +0.087$ [-0.028$, +0.201$], lift +21.7%, p=0.131 (Welch t (normal approx), bootstrap CI; n=14,118/14,146)
+- situation | quiz start: 73.82% -> 86.14%, diff +12.32pp [+11.15pp, +13.49pp], lift +16.7%, p=0.000 (two-proportion z; n=8,744/8,788)
+- checkout | paywall view: 18.13% -> 18.32%, diff +0.19pp [-2.29pp, +2.67pp], lift +1.0%, p=0.881 (two-proportion z; n=1,765/1,965)
+- paywall view: 12.50% -> 13.89%, diff +1.39pp [+0.60pp, +2.18pp], lift +11.1%, p=0.001 (two-proportion z; n=14,118/14,146)
+
+## chat-length: 2 vs 4
+Primary metric: revenue per visitor.  SRM check p=0.26 (14,227 vs 14,037 exposed)
+
+| metric | 2 | 4 |
+|---|---|---|
+| users exposed | 14,227 | 14,037 |
+| quiz start | 62.11% | 61.95% |
+| quiz complete | 34.10% | 34.54% |
+| chat finished | 27.27% | 20.55% |
+| email | 15.89% | 12.59% |
+| paywall view | 14.73% | 11.64% |
+| checkout | 2.59% | 2.22% |
+| purchase | 2.01% | 1.55% |
+| rev/exposed user (all revenue) (95% CI) | $0.528 [0.446, 0.619] | $0.359 [0.291, 0.429] |
+| rev at purchase (95% CI) | $0.255 [0.210, 0.300] | $0.193 [0.154, 0.232] |
+- PRIMARY rev/exposed user (all revenue): $0.528 -> $0.359, diff -0.168$ [-0.275$, -0.061$], lift -31.9%, p=0.003 (Welch t (normal approx), bootstrap CI; n=14,227/14,037)
+- chat finished | coach matched: 79.95% -> 59.51%, diff -20.44pp [-22.22pp, -18.65pp], lift -25.6%, p=0.000 (two-proportion z; n=4,852/4,848)
+- email | email screen: 60.57% -> 63.61%, diff +3.04pp [+0.66pp, +5.42pp], lift +5.0%, p=0.013 (two-proportion z; n=3,733/2,778)
+- checkout | paywall view: 17.60% -> 19.03%, diff +1.43pp [-1.08pp, +3.93pp], lift +8.1%, p=0.262 (two-proportion z; n=2,096/1,634)
 
 ## upsell-offer: single vs bundle
-Primary metric: upsell revenue per upsell viewer.  SRM check p=0.06 (284 vs 330 exposed)
+Primary metric: upsell revenue per upsell viewer.  SRM check p=0.35 (262 vs 241 exposed)
 
 | metric | single | bundle |
 |---|---|---|
-| users exposed | 284 | 330 |
-| upsell take | 16.20% | 11.82% |
-| upsell rev/viewer (95% CI) | $1.618 [1.230, 2.040] | $1.772 [1.317, 2.317] |
-- PRIMARY upsell rev/viewer: $1.618 -> $1.772, diff +0.153$ [-0.496$, +0.813$], lift +9.5%, p=0.657 (Welch t (normal approx), bootstrap CI; n=284/330)
-- upsell take: 16.20% -> 11.82%, diff -4.38pp [-9.90pp, +1.14pp], lift -27.0%, p=0.117 (two-proportion z; n=284/330)
+| users exposed | 262 | 241 |
+| upsell take | 24.43% | 12.86% |
+| upsell rev/viewer (95% CI) | $2.440 [1.945, 2.975] | $1.928 [1.368, 2.612] |
+- PRIMARY upsell rev/viewer: $2.440 -> $1.928, diff -0.512$ [-1.287$, +0.315$], lift -21.0%, p=0.222 (Welch t (normal approx), bootstrap CI; n=262/241)
+- upsell take: 24.43% -> 12.86%, diff -11.56pp [-18.27pp, -4.86pp], lift -47.3%, p=0.001 (two-proportion z; n=262/241)
 
 ## Caveats
-- Four tests ran at once on the same users; assignment is independent (hash per experiment), so effects are read marginally.
+- Five tests ran at once on the same users; assignment is independent (hash per experiment), so effects are read marginally.
 - Weekly plans renew, annual trials convert later: first charges only are counted, which favours annual_trial. A fair paywall-model call needs renewal data (LTV), not just this window.
 - upsell-offer has only the buyers as its sample; it is underpowered at this traffic and should keep running.

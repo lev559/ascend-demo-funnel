@@ -3,7 +3,16 @@ import "./globals.css";
 import Providers from "./providers";
 import { PUBLIC } from "../lib/config";
 
-export const metadata = { title: "Duskwise — demo AI coach funnel", description: "Portfolio demo funnel. Not a real product." };
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://ascend-demo-funnel.vercel.app";
+export const metadata = {
+  metadataBase: new URL(SITE),
+  title: "Duskwise: an AI coach you'd text on a bad day",
+  description: "Say what's going on. Get questions, a chat and a plan written for your situation, from a coach who remembers.",
+  openGraph: { type: "website", url: SITE, siteName: "Duskwise", title: "Duskwise: an AI coach you'd text on a bad day",
+    description: "Say what's going on. Get a plan written for your situation, from a coach who remembers.", images: [{ url: "/og.png", width: 1200, height: 630, alt: "Duskwise AI coach" }] },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
+  icons: { icon: "/avatars/theo.svg" },
+};
 export const viewport = { width: "device-width", initialScale: 1, themeColor: "#1C1730" };
 
 export default function RootLayout({ children }) {
@@ -18,7 +27,6 @@ export default function RootLayout({ children }) {
         )}
       </head>
       <body>
-        <div className="demo-bar">Portfolio demo — not a real product. Payments run in test mode only.</div>
         <Providers>{children}</Providers>
       </body>
     </html>
