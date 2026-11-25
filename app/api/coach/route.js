@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { allowModelCall } from '../../../lib/ratelimit';
 import { COACHES } from '../../../lib/coaches';
 import { callLLM, parseJSON, hasLLM, reason as why } from '../../../lib/llm';
 import { chatPrompt } from '../../../lib/coachPrompt';
@@ -20,6 +21,8 @@ export async function POST(req) {
 
   const fb = () => fallbackChat(coachId, turn, max, ctx.name || 'there');
   if (!hasLLM()) return NextResponse.json({ ...fb(), mode: 'fallback', reason: 'no key' });
+  const gate = allowModelCall(req);
+  if (!gate.ok) return NextResponse.json({ ...fb(), mode: 'fallback', reason: gate.reason });
   try {
     const raw = await callLLM(chatPrompt(ctx, coachId, history, turn, max), { maxTokens: 260, timeout: 9000 });
     let text = raw, replies = [];

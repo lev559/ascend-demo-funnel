@@ -5,8 +5,9 @@ export const metadata = {
 };
 
 const LINKS = [
-  ["Try the funnel", "/"],
+  ["Try the funnel", "/?fresh=1"],
   ["Code on GitHub", "https://github.com/lev559/ascend-demo-funnel"],
+  ["Mixpanel board", "https://eu.mixpanel.com/p/7Wd8rnHJDtR5fccFHNMd6Z"],
   ["Experiment read-out", "https://github.com/lev559/ascend-demo-funnel/blob/main/data/report.md"],
 ];
 
@@ -109,7 +110,14 @@ export default function Case() {
       </section>
 
       <section>
-        <h2>6. Five experiments, read out</h2>
+        <h2>6. Behind the scenes</h2>
+        <p>The same five experiments live in GrowthBook (assignment) and Mixpanel (analysis). The Mixpanel board below is public and read-only: <a href="https://eu.mixpanel.com/p/7Wd8rnHJDtR5fccFHNMd6Z" target="_blank" rel="noreferrer">open it</a>.</p>
+        <figure className="c-wide"><img src="/case/mixpanel.webp" alt="Mixpanel board: main funnel and one funnel per experiment" loading="lazy" /><figcaption>Mixpanel: the main funnel and one funnel per experiment, split by variant (simulated data)</figcaption></figure>
+        <figure className="c-wide"><img src="/case/growthbook.webp" alt="GrowthBook: five running experiments" loading="lazy" /><figcaption>GrowthBook: five experiments running as feature-flag rules, 50/50 by user id</figcaption></figure>
+      </section>
+
+      <section>
+        <h2>7. Five experiments, read out</h2>
         <p className="c-note">The site has almost no real traffic, so I simulated 3 weeks of paid social (28K visitors, 447K events) with assumed “true” effects, loaded it into Mixpanel and analysed it like real data. The point is the method: because I know the truth, I can see where the read-out misleads.</p>
         <div className="c-exps">{EXPERIMENTS.map((x) => (
           <div className="c-exp" key={x.key}>
@@ -123,7 +131,7 @@ export default function Case() {
       </section>
 
       <section>
-        <h2>7. What I'd do next with real traffic</h2>
+        <h2>8. What I'd do next with real traffic</h2>
         <ul>
           <li>Run entry-mode and chat-length first: biggest expected effect, fastest to read.</li>
           <li>Judge paywall-model on 90-day LTV and refund rate, not first charge.</li>
@@ -133,7 +141,7 @@ export default function Case() {
         <p className="c-note">Payments run in Stripe test mode, so nothing can be charged. Experiment numbers on this page are simulated, and labelled as such in the report.</p>
       </section>
 
-      <footer className="c-foot"><a href="/">Try the funnel →</a><span>Lev Ryazanov · 2026</span></footer>
+      <footer className="c-foot"><a href="/?fresh=1">Try the funnel →</a><span>Lev Ryazanov · 2026</span></footer>
     </main>
   );
 }

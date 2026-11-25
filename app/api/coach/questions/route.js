@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { allowModelCall } from '../../../../lib/ratelimit';
 import { callLLM, parseJSON, hasLLM, reason as why } from '../../../../lib/llm';
 import { questionsPrompt } from '../../../../lib/coachPrompt';
 import { fallbackQuestions } from '../../../../lib/fallbacks';
@@ -13,6 +14,8 @@ export async function POST(req) {
   if (isCrisis(ctx.text)) return NextResponse.json({ crisis: true, text: CRISIS_REPLY });
   const fb = () => fallbackQuestions(ctx.reason, ctx.text, n);
   if (!hasLLM()) return NextResponse.json({ ...fb(), mode: 'fallback', reason: 'no key' });
+  const gate = allowModelCall(req);
+  if (!gate.ok) return NextResponse.json({ ...fb(), mode: 'fallback', reason: gate.reason });
   try {
     const out = parseJSON(await callLLM(questionsPrompt(ctx, n), { maxTokens: 760, timeout: 9000, temperature: 0.5 }));
     if (out.risk === true) return NextResponse.json({ crisis: true, text: CRISIS_REPLY, mode: 'model_flag' });

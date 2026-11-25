@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { allowModelCall } from '../../../../lib/ratelimit';
 import { callLLM, parseJSON, hasLLM, reason as why } from '../../../../lib/llm';
 import { planPrompt } from '../../../../lib/coachPrompt';
 import { fallbackPlan } from '../../../../lib/fallbacks';
@@ -16,6 +17,8 @@ export async function POST(req) {
   const fb = () => fallbackPlan(ctx.reason, days, body.coachId);
   const risky = isCrisis(ctx.text) || history.some((m) => m.role === 'user' && isCrisis(m.content));
   if (risky || !hasLLM()) return NextResponse.json({ ...fb(), mode: 'fallback', reason: risky ? 'risk' : 'no key' });
+  const gate = allowModelCall(req);
+  if (!gate.ok) return NextResponse.json({ ...fb(), mode: 'fallback', reason: gate.reason });
   try {
     const p = parseJSON(await callLLM(planPrompt(ctx, body.coachId, history, days), { maxTokens: 900, timeout: 20000, temperature: 0.5 }));
     const plan = {

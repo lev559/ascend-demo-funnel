@@ -37,6 +37,11 @@ export default function Funnel() {
   const angle = typeof window !== "undefined" ? sessionStorage.getItem("duskwise_angle") || "default" : "default";
 
   useEffect(() => {
+    // /?fresh=1 (linked from the case page) starts over: clears saved progress and the intro-price timer
+    if (new URLSearchParams(window.location.search).has("fresh")) {
+      try { ["dw_state", "dw_offer_deadline"].forEach((k) => localStorage.removeItem(k)); sessionStorage.clear(); } catch {}
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     const st = loadState();
     let back = false;
     try { back = !sessionStorage.getItem("dw_session") && st.stage === "paywall" && !st.paid; sessionStorage.setItem("dw_session", "1"); } catch {}

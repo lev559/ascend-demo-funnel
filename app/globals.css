@@ -207,3 +207,6 @@ footer.legal a{color:inherit;margin:0 6px}
 .c-side{color:rgba(255,255,255,.6)!important}.c-call{border-left:3px solid var(--apricot);padding-left:10px;color:#fff!important}
 .c-foot{display:flex;justify-content:space-between;padding-top:26px;border-top:1px solid rgba(255,255,255,.09);font-size:14px;color:rgba(255,255,255,.5)}
 .c-foot a{color:var(--apricot);font-weight:600;text-decoration:none}
+.c-wide{margin:14px 0}.c-wide img{width:100%;border-radius:14px;display:block;border:1px solid rgba(255,255,255,.08)}
+.c-wide figcaption{font-size:13px;color:rgba(255,255,255,.6);margin-top:6px}
+.case p a{color:var(--apricot)}
