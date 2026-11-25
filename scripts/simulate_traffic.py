@@ -1,4 +1,4 @@
-"""SIMULATED traffic for the Duskwise funnel. Not real users.
+"""SIMULATED traffic for the Quietly funnel. Not real users.
 
 Emits the same events and properties the live app sends (app/page.jsx, app/upsell, app/done, app/providers.jsx)
 for 3 weeks of paid-social traffic with five experiments running at once, each a 50/50 split by user id:

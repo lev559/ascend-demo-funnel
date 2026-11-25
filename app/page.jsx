@@ -34,14 +34,14 @@ export default function Funnel() {
   const entryMode = useFeatureValue("entry-mode", "write");
   const [s, setS] = useState(null);
   const [returning, setReturning] = useState(false);
-  const angle = typeof window !== "undefined" ? sessionStorage.getItem("duskwise_angle") || "default" : "default";
+  const angle = typeof window !== "undefined" ? sessionStorage.getItem("quietly_angle") || "default" : "default";
 
   useEffect(() => {
     // /?fresh=1 (linked from the case page) starts over: clears saved progress and the intro-price timer
     if (new URLSearchParams(window.location.search).has("fresh")) {
       try {
         ["dw_state", "dw_offer_deadline"].forEach((k) => localStorage.removeItem(k));
-        const keep = ["duskwise_angle", "dw_case"].map((k) => [k, sessionStorage.getItem(k)]);
+        const keep = ["quietly_angle", "dw_case"].map((k) => [k, sessionStorage.getItem(k)]);
         sessionStorage.clear();
         keep.forEach(([k, val]) => val && sessionStorage.setItem(k, val));
       } catch {}
@@ -88,7 +88,7 @@ export default function Funnel() {
     const order = Object.keys(REASONS).sort((a, b) => (b === hero.reason) - (a === hero.reason));
     return (
       <div className="app dark"><main className="screen">
-        <div className="top"><span className="logo">Duskwise</span><span style={{ marginLeft: "auto" }}>2-MIN CHAT</span></div>
+        <div className="top"><span className="logo">Quietly</span><span style={{ marginLeft: "auto" }}>2-MIN CHAT</span></div>
         <h1>{hero.title}<br /><span className="ap">{hero.accent}</span></h1>
         <ChatPreview />
         <p className="sub">What brings you here today?</p>
@@ -128,7 +128,7 @@ export default function Funnel() {
     <div className="app dark"><main className="screen">
       <h2>Thank you for telling us.</h2>
       <div className="crisis">{s.crisis}</div>
-      <p className="sub">Duskwise is a coaching app and can't help in an emergency. If you're safe and want to keep going, you can.</p>
+      <p className="sub">Quietly is a coaching app and can't help in an emergency. If you're safe and want to keep going, you can.</p>
       <div className="spacer" />
       <button className="btn ghost" onClick={() => up({ stage: "write" })}>Go back</button>
     </main></div>
@@ -623,7 +623,7 @@ function Paywall({ s, returning, router, onPaid }) {
   const p = cfg.plans.find((x) => x.id === sel) || cfg.plans[0];
   const today = p.trialDays ? 0 : intro ? p.price : p.full;
   const mm = left === null ? "10:00" : `${String(Math.floor(left / 60000)).padStart(2, "0")}:${String(Math.floor((left % 60000) / 1000)).padStart(2, "0")}`;
-  const code = `${(s.name || "DUSK").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 8)}_${new Date().toLocaleDateString("en-US", { month: "short" }).toUpperCase()}`;
+  const code = `${(s.name || "QUIET").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 8)}_${new Date().toLocaleDateString("en-US", { month: "short" }).toUpperCase()}`;
   const terms = p.trialDays
     ? `$0 today. Your free trial ends on ${renewalDate(p.trialDays)}, then ${money(p.full)} per year until you cancel. We'll remind you 3 days before.`
     : `${money(today)} today for your first ${p.count > 1 ? `${p.count} ${p.interval}s` : p.interval}. Then ${money(p.full)} every ${p.count > 1 ? `${p.count} ${p.interval}s` : p.interval}, starting ${renewalDate(p.days)}, until you cancel. We'll remind you 3 days before.`;

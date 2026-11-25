@@ -8,8 +8,8 @@ import { PUBLIC } from "../lib/config";
 function readAngle() {
   const p = new URLSearchParams(window.location.search);
   const a = p.get("angle") || p.get("utm_content");
-  if (a && ANGLES[a]) { sessionStorage.setItem("duskwise_angle", a); return a; }
-  return sessionStorage.getItem("duskwise_angle") || "default";
+  if (a && ANGLES[a]) { sessionStorage.setItem("quietly_angle", a); return a; }
+  return sessionStorage.getItem("quietly_angle") || "default";
 }
 
 export default function Providers({ children }) {

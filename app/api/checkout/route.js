@@ -24,7 +24,7 @@ export async function POST(req) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: Math.round(p.full * 100),
-        recurring: { interval: p.interval, interval_count: p.count }, product_data: { name: `Duskwise ${p.name}` } } }],
+        recurring: { interval: p.interval, interval_count: p.count }, product_data: { name: `Quietly ${p.name}` } } }],
       discounts: discount,
       subscription_data: p.trialDays ? { trial_period_days: p.trialDays } : undefined,
       success_url: `${origin}/upsell?plan=${p.id}&intro=${discount ? 1 : 0}&session_id={CHECKOUT_SESSION_ID}`,
@@ -37,7 +37,7 @@ export async function POST(req) {
   if (!o) return Response.json({ error: "unknown offer" }, { status: 400 });
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: Math.round(o.price * 100), product_data: { name: `Duskwise: ${o.title}` } } }],
+    line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: Math.round(o.price * 100), product_data: { name: `Quietly: ${o.title}` } } }],
     success_url: `${origin}/done?upsell=${id}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/done`,
   });

@@ -1,4 +1,4 @@
-# Duskwise: an adaptive AI-coach web2app funnel, with an A/B testing stack
+# Quietly: an adaptive AI-coach web2app funnel, with an A/B testing stack
 
 Case study: **[/case](https://ascend-demo-funnel.vercel.app/case)** · Live funnel: **[ascend-demo-funnel.vercel.app](https://ascend-demo-funnel.vercel.app)**
 

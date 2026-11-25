@@ -1,4 +1,4 @@
-export const metadata = { title: "Manage subscription · Duskwise" };
+export const metadata = { title: "Manage subscription · Quietly" };
 export default function Page() {
   return (<main className="doc"><h1>Manage subscription</h1>
     <p>Sign in with the email you used at checkout to see your plan, change it or cancel in two taps.</p>

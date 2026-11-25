@@ -51,7 +51,7 @@ export default function CaseStudy({ v = "rist" }) {
         <div className="c-kicker">Case study · Product marketing / growth</div>
         <h1>An AI-coach funnel that <span>adapts to the person</span>, not a template</h1>
         <p className="c-lead">A web2app {rist ? "relaunch " : ""}funnel for an AI coaching subscription, built end to end: research, positioning, brand, an AI quiz that writes its own questions, a paywall with conversion mechanics and guardrails, and a stack to test it.</p>
-        <p className="c-by">{rist ? "Lev Ryazanov · built for the Rist Labs Junior PMM application (Aligned relaunch) · Duskwise is a stand-in brand" : "Lev Ryazanov · self-initiated portfolio project · Duskwise is a fictional brand I created for it"}</p>
+        <p className="c-by">{rist ? "Lev Ryazanov · built for the Rist Labs Junior PMM application (Aligned relaunch) · Quietly is a stand-in brand" : "Lev Ryazanov · self-initiated portfolio project · Quietly is a fictional brand I created for it"}</p>
         <nav className="c-links">{LINKS.map(([t, h]) => <a key={t} href={h} target={h.startsWith("http") ? "_blank" : undefined} rel="noreferrer">{t} →</a>)}</nav>
       </header>
 
@@ -62,7 +62,7 @@ export default function CaseStudy({ v = "rist" }) {
           <p>The landing line “A coach you'd text on a bad day” is borrowed from Aligned's own site on purpose: this is their positioning, and the funnel is my answer to how to sell it. Everything else is mine.</p>
         </>) : (<>
           <p>AI coaching apps are a crowded, fast-growing subscription category, yet most of them sell straight from an ad to an app-store install. Very few run a web funnel that learns about the person, shows real value before the paywall and sells the subscription on the web. My question: <b>what should a web2app funnel for an AI coach look like, and how would I know it works?</b></p>
-          <p>Duskwise is a fictional brand I made for this: name, positioning, visual identity and four coach personas. The funnel, the prompts, the analytics and the experiment plan are all built from scratch.</p>
+          <p>Quietly is a fictional brand I made for this: name, positioning, visual identity and four coach personas. The funnel, the prompts, the analytics and the experiment plan are all built from scratch.</p>
         </>)}
       </section>
 

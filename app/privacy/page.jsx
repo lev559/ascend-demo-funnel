@@ -1,4 +1,4 @@
-export const metadata = { title: "Privacy · Duskwise" };
+export const metadata = { title: "Privacy · Quietly" };
 export default function Page() {
   return (<main className="doc"><h1>Privacy</h1>
     <p>Your answers and chats are used only to give you coaching and to let your coach remember your situation. They are never sold or used for advertising.</p>

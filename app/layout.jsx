@@ -6,10 +6,10 @@ import { PUBLIC } from "../lib/config";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://ascend-demo-funnel.vercel.app";
 export const metadata = {
   metadataBase: new URL(SITE),
-  title: "Duskwise: an AI coach you'd text on a bad day",
+  title: "Quietly: an AI coach you'd text on a bad day",
   description: "Say what's going on. Get questions, a chat and a plan written for your situation, from a coach who remembers.",
-  openGraph: { type: "website", url: SITE, siteName: "Duskwise", title: "Duskwise: an AI coach you'd text on a bad day",
-    description: "Say what's going on. Get a plan written for your situation, from a coach who remembers.", images: [{ url: "/og.png", width: 1200, height: 630, alt: "Duskwise AI coach" }] },
+  openGraph: { type: "website", url: SITE, siteName: "Quietly", title: "Quietly: an AI coach you'd text on a bad day",
+    description: "Say what's going on. Get a plan written for your situation, from a coach who remembers.", images: [{ url: "/og.png", width: 1200, height: 630, alt: "Quietly AI coach" }] },
   twitter: { card: "summary_large_image", images: ["/og.png"] },
   icons: { icon: "/avatars/theo.svg" },
 };
