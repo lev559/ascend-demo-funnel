@@ -5,7 +5,7 @@ import { useFeatureValue } from "@growthbook/growthbook-react";
 import { REASONS, ANGLES, questionsFor, dynamicCount, coachFromAnswers, PAYWALLS, DOWNSELL, OFFER_MINUTES, perDay, renewalDate, money } from "../lib/funnel";
 import { COACHES, whyCoach } from "../lib/coaches";
 import { track } from "../lib/analytics";
-import { ReasonArt, CoachAvatar } from "./art";
+import { ReasonArt, CoachAvatar, OptArt } from "./art";
 
 const KEY = "dw_state";
 const loadState = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
@@ -191,7 +191,7 @@ export default function Funnel() {
         <NameField initial={s.name} onDone={(name) => { track("name_submitted"); next({ name }); }} />
       </main></div>);
     return (
-      <Question q={step.q} value={s.general?.[step.q.id]} Prog={Prog}
+      <Question q={step.q} value={s.general?.[step.q.id]} Prog={Prog} name={s.name}
         onAnswer={(v, auto) => { const general = { ...(s.general || {}), [step.q.id]: v }; up({ general }); if (auto) setTimeout(() => next({ general }), 180); }}
         onNext={() => next()} />
     );
@@ -308,14 +308,19 @@ function Reading({ ctx, n, onDone, onCrisis }) {
 }
 
 /* ---------- General question ---------- */
-function Question({ q, value, onAnswer, onNext, Prog }) {
+// Each general question has its own layout (numbers, list with icons, grid of tiles, row, timeline)
+// so the quiz doesn't feel like the same screen repeated. Answers stay plain strings for analytics and the model.
+function Question({ q, value, onAnswer, onNext, Prog, name }) {
   if (q.type === "statement") return (
     <div className="app"><main className="screen"><Prog />
       <div className="note">About you</div>
       <h2>Does this sound like you?</h2>
-      <div className="quote">{q.q}</div>
-      <div className="scale">{q.options.map((o) => <button key={o} className={value === o ? "sel" : ""} onClick={() => onAnswer(o, true)}>{o}</button>)}</div>
-      <div className="scalel"><span>Not me</span><span>That's me</span></div>
+      <div className={`quote2 ${q.id}`}><span className="qm">“</span><p>{q.q.replace(/[“”]/g, "")}</p><OptArt name={q.art} size={52} /></div>
+      <div className="scale2">{q.options.map((o, i) => (
+        <button key={o} className={value === o ? "sel" : ""} onClick={() => onAnswer(o, true)} aria-label={o}>
+          <i style={{ width: 16 + i * 6, height: 16 + i * 6 }} /></button>))}</div>
+      <div className="scalel"><span>Not me</span><span>Somewhat</span><span>That's me</span></div>
+      <div className="aside"><span className="nlogo">Q</span><span>{q.id === "stuck" ? "Knowing and doing are different skills. This tells your coach which one to start with." : "Thinking is useful up to a point. This tells your coach when to nudge you to act."}</span></div>
     </main></div>
   );
   if (q.type === "voice") return (
@@ -330,15 +335,28 @@ function Question({ q, value, onAnswer, onNext, Prog }) {
   );
   const multi = q.type === "multi";
   const sel = multi ? value || [] : value;
+  const layout = q.layout || "list";
+  const pick = (o) => (multi ? onAnswer(sel.includes(o) ? sel.filter((x) => x !== o) : [...sel, o]) : onAnswer(o, true));
+  const isOn = (o) => (multi ? sel.includes(o) : sel === o);
+  const showAside = q.aside && (!multi || sel.length > 0);
   return (
     <div className="app"><main className="screen"><Prog />
       <div className="note">{["voice", "time", "checkin", "goal_when"].includes(q.id) ? "Your coach" : "About you"}</div>
       <h2>{q.q}</h2>{q.hint && <p className="sub">{q.hint}</p>}
-      <div className="opts">{q.options.map((o) => {
-        const on = multi ? sel.includes(o) : sel === o;
-        return <button key={o} className={`opt ${multi ? "multi" : ""} ${on ? "sel" : ""}`}
-          onClick={() => multi ? onAnswer(on ? sel.filter((x) => x !== o) : [...sel, o]) : onAnswer(o, true)}><span>{o}</span><span className="chk" /></button>;
-      })}</div>
+      {q.preview && (
+        <div className="notif"><span className="nlogo">Q</span><span><b>Quietly</b> · now<br />{name ? `${name}, quick` : "Quick"} check-in: how did today's step go?</span></div>)}
+      {layout === "timeline" ? (
+        <div className="tline">{q.options.map((o, i) => (
+          <button key={o} className={`tstop ${isOn(o) ? "sel" : ""}`} onClick={() => pick(o)}>
+            <i /><b>{o}</b><small>{q.subs?.[i]}</small></button>))}</div>
+      ) : (
+        <div className={`opts ${layout}`}>{q.options.map((o, i) => (
+          <button key={o} className={`opt ${layout} ${multi ? "multi" : ""} ${isOn(o) ? "sel" : ""}`} onClick={() => pick(o)}>
+            {layout === "numbers" ? <b className="num">{o}</b> : <OptArt name={q.art?.[i]} size={layout === "list" ? 38 : 44} />}
+            {layout !== "numbers" && <span>{o}{q.subs?.[i] && <small>{q.subs[i]}</small>}</span>}
+            <span className="chk" /></button>))}</div>
+      )}
+      {showAside && <div className="aside"><span className="nlogo">Q</span><span>{q.aside}</span></div>}
       {multi && <><div className="spacer" /><div className="sticky-cta"><button className="btn ink" disabled={!sel.length} onClick={onNext}>Continue</button></div></>}
     </main></div>
   );
