@@ -22,9 +22,11 @@ export async function POST(req) {
   if (!hasLLM()) return NextResponse.json({ ...fb(), mode: 'fallback', reason: 'no key' });
   try {
     const raw = await callLLM(chatPrompt(ctx, coachId, history, turn, max), { maxTokens: 260, timeout: 9000 });
-    let text, replies = [], risk = false;
-    try { const j = parseJSON(raw); text = j.text; risk = j.risk === true; replies = Array.isArray(j.replies) ? j.replies : []; } catch { text = raw; }
-    if (risk) return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' });
+    let text = raw, replies = [];
+    if (/^\s*RISK\b/.test(raw)) return NextResponse.json({ text: CRISIS_REPLY, replies: [], mode: 'safety' });
+    const m = raw.match(/\n\s*REPLIES:\s*(.+)\s*$/i);
+    if (m) { replies = m[1].split('|').map((x) => x.trim()).filter(Boolean); text = raw.slice(0, m.index); }
+    try { if (text.trim().startsWith('{')) { const j = parseJSON(text); text = j.text || text; replies = j.replies || replies; } } catch {}
     text = String(text || '').trim().replace(/^"|"$/g, '').replace(/^(Theo|Nora|Ines|Max):\s*/, '');
     if (!isSafeReply(text)) throw new Error(text ? 'unsafe' : 'empty');
     replies = turn === max ? [] : replies.map((r) => String(r).slice(0, 32)).filter(Boolean).slice(0, 2);

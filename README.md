@@ -4,7 +4,7 @@ Case study: **[/case](https://ascend-demo-funnel.vercel.app/case)** · Live funn
 
 Reason → situation in their own words → AI-written questions → name → pick a voice (= coach) → chat with the coach →
 plan written for them → email → plan → commitment → paywall → upsell. Built as a portfolio case for an AI-coach relaunch.
-Payments run in Stripe test mode only; the experiment data in `data/` is simulated (every event has `sim_version: 2`).
+Payments run in Stripe test mode only; the experiment data in `data/` is simulated (`scripts/simulate_traffic.py`).
 
 | Layer | Tool | Where in the code |
 | --- | --- | --- |
@@ -29,67 +29,52 @@ Secrets live only in Vercel environment variables: `LLM_API_KEY` (Cloudflare tok
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in what you have, everything is optional
-npm run dev                  # http://localhost:3000/?angle=procrastination
+cp .env.example .env.local   # everything is optional
+npm run dev                  # http://localhost:3000/?angle=lost
 ```
+Without keys the funnel still works end to end: experiments are assigned locally, events go to the console,
+the coach uses its written fallbacks and checkout is unavailable.
 
-## Set up the stack (about 1 hour, all free tiers)
+## How the AI coach works
 
-### 1. GitHub + Vercel (hosting)
-1. Create a GitHub repo and push this folder.
-2. vercel.com → Add New Project → import the repo → Deploy.
-3. Project → Settings → Environment Variables: add the keys from the steps below, then Redeploy.
+Three server routes call the model; the key never reaches the browser.
 
-### 2. Mixpanel (analytics)
-1. Create **two** projects: `ascend-live` (real clicks on the deployed funnel) and `ascend-simulated` (generated data). Never mix them.
-2. Live project → Settings → copy the **Project token** → `NEXT_PUBLIC_MIXPANEL_TOKEN` in Vercel.
-3. Simulated project → Settings → Service accounts → create one with Admin role. Then:
-   ```bash
-   python3 scripts/simulate_traffic.py
-   export MIXPANEL_PROJECT_ID=... MIXPANEL_SA_USERNAME=... MIXPANEL_SA_SECRET=...
-   python3 scripts/mixpanel_import.py --send
-   ```
-4. Build a board: Funnels report `landing_viewed → quiz_started → email_submitted → paywall_viewed → checkout_started → purchase_completed`,
-   broken down by `layout`; Insights: sum of `revenue` by `angle`; Funnels `upsell_viewed → upsell_purchased` by `variant`.
+| Route | When | Returns |
+| --- | --- | --- |
+| `POST /api/coach/questions` | while the person answers the general questions | reflection + 3 or 5 questions written for their situation, each with a short label |
+| `POST /api/coach` | each chat turn (2 or 4, `chat-length` test) | the coach's message + 2 quick replies |
+| `POST /api/coach/plan` | during the loader | profile, insight, next step, technique + source, 5 days, 4 commitments, now/soon/goal for the paywall |
 
-### 3. GrowthBook (experiments)
-1. app.growthbook.io → SDK Connections → new connection (JavaScript/React) → copy the client key → `NEXT_PUBLIC_GROWTHBOOK_CLIENT_KEY`.
-2. Features → add `paywall-layout` (string, default `control`) → Add rule → Experiment, key `paywall-layout`,
-   variations `control` / `plan_preview`, 50/50, assign by `id`.
-3. Same for `upsell-offer` (default `single`, variations `single` / `bundle`).
-4. Analysis → Data sources → Mixpanel (service account + project ID). Exposure event: `$experiment_started`,
-   properties `Experiment name` and `Variant name` — exactly what `app/providers.jsx` sends.
-5. Metrics: `Purchase` (binomial, event `purchase_completed`), `Revenue` (sum of `revenue` on `purchase_completed`),
-   `Upsell take` (binomial, `upsell_purchased`), `Upsell revenue` (sum of `revenue` on `upsell_purchased`).
+Guardrails: user text is wrapped as data (`<user_data>`) so instructions inside it are ignored; crisis language is
+checked in 6 languages (`lib/safety.js`) and the model also returns a `risk` flag, after which coaching stops and help
+lines are shown; replies with links, diagnoses or medication are rejected; any timeout or error uses the written
+fallback for the person's reason (`lib/fallbacks.js`). `scripts/test_coach.py` runs a fixed test set against the live API.
 
-### 4. Google Tag Manager + Meta Pixel
-1. tagmanager.google.com → new web container → copy `GTM-XXXX` → `NEXT_PUBLIC_GTM_ID`.
-2. Add the Meta Pixel template; fire `PageView` on all pages, `Lead` on the custom event `email_submitted`,
-   `Purchase` on `purchase_completed` with value `{{revenue}}` (Data Layer Variable).
-3. Check it with GTM Preview and Meta Events Manager → Test events.
+## Experiments (GrowthBook)
 
-### 5. Stripe (test mode)
-1. dashboard.stripe.com → switch on **Test mode** → Developers → API keys → secret key (`sk_test_...`) → `STRIPE_SECRET_KEY`.
-2. Pay with the test card `4242 4242 4242 4242`, any future date, any CVC. The code refuses live keys.
-3. In production the purchase event would come from a Stripe webhook, not from the browser redirect.
+| Key | Variants | Exposed on |
+| --- | --- | --- |
+| `entry-mode` | `write` / `tap` | landing |
+| `quiz-length` | `short` / `long` | landing |
+| `chat-length` | `2` / `4` | landing |
+| `paywall-model` | `weekly` / `annual_trial` | paywall |
+| `upsell-offer` | `single` / `bundle` | upsell |
 
-## Experiment read-out
+Every exposure is sent to Mixpanel as `$experiment_started` with `Experiment name` and `Variant name`, the format
+GrowthBook's Mixpanel data source reads. If a feature is missing in GrowthBook, the same split runs locally (`OFFLINE_FEATURES`).
+
+## Simulated read-out
 
 ```bash
-python3 scripts/simulate_traffic.py   # 3 weeks of simulated traffic, assumptions in data/assumptions.json
-python3 scripts/analyse.py            # funnel, angles, both tests with confidence intervals, charts in charts/
+python3 scripts/simulate_traffic.py   # 3 weeks of paid-social traffic; assumed effects in RATES, saved to data/assumptions.json
+python3 scripts/analyse.py            # per-experiment read-out with CIs and p-values -> data/report.md
+export MIXPANEL_PROJECT_ID=... MIXPANEL_SA_USERNAME=... MIXPANEL_SA_SECRET=... MIXPANEL_REGION=api-eu
+python3 scripts/mixpanel_import.py --send [--from N --to M]   # streamed, resumable upload
 ```
 
-## Coach chat: scripted by default, LLM optional
-
-Screen 5 of the funnel is a 3-message chat with the matched coach (`lib/coaches.js`, `app/api/coach/route.js`).
-
-| Turn | What the coach says | Source |
-| --- | --- | --- |
-| 1 | Opener: "what's the heaviest thing on your plate this week?" | script, per coach |
-| 2 | Repeats back what the user wrote + names one thing for tonight + what can wait | LLM if configured, else script |
-| 3 | "How long can you give it tonight?" + quick replies | script |
-
-Safety: every user message goes through `lib/safety.js` first. Crisis language stops coaching and shows help lines (988 in the US, Samaritans 116 123 in the UK/IE, findahelpline.com). Model replies that are too long, contain links or mention diagnoses/medication are replaced by the scripted line. A 2.5 s timeout or any provider error also falls back to the script, so the funnel never waits on the model.
-
-Turn on LLM mode with three environment variables (any OpenAI-compatible endpoint): `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`. Track `chat_mode` (`scripted | llm | fallback | safety`) in Mixpanel to A/B test scripted vs LLM.
+## Stack setup (free tiers)
+- **Vercel:** import the repo; env vars `LLM_API_KEY`, `STRIPE_SECRET_KEY`.
+- **Mixpanel (EU):** one project for live events (token in `lib/config.js`), one for simulated data (service account for the import).
+- **GrowthBook:** React SDK connection (client key in `lib/config.js`), the five features above as experiment rules, assigned by `id`.
+- **GTM:** container ID in `lib/config.js`; Data Layer Variables for `revenue`, `plan`, `paywall_model`, `Experiment name`, `Variant name`.
+- **Stripe:** test mode only (`sk_test_…`); the code refuses live keys. Test card `4242 4242 4242 4242`.

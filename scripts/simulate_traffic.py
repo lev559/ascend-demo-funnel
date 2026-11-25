@@ -1,4 +1,4 @@
-"""SIMULATED traffic for the Duskwise funnel (v2: adaptive coach funnel). Not real users.
+"""SIMULATED traffic for the Duskwise funnel. Not real users.
 
 Emits the same events and properties the live app sends (app/page.jsx, app/upsell, app/done, app/providers.jsx)
 for 3 weeks of paid-social traffic with five experiments running at once, each a 50/50 split by user id:
@@ -8,7 +8,7 @@ for 3 weeks of paid-social traffic with five experiments running at once, each a
   paywall-model weekly | annual_trial
   upsell-offer  single | bundle
 Every assumed rate is in RATES below: these are the "true" effects the analysis should recover.
-Every event carries sim_version=2 so it can be told apart from the v1 import in the same Mixpanel project.
+Every event carries simulated=True and a dataset marker (sim_version) so it can never be mixed with live data.
 Output: data/events.ndjson (Mixpanel /import format), data/events.csv, data/assumptions.json.
 """
 import csv, hashlib, json, os, random, uuid

@@ -29,10 +29,14 @@ const EXPERIMENTS = [
 ];
 
 const PROMPT = [
-  ["“You will…” (bossy tone)", "9 of 15", "0"],
-  ["One concrete step for tonight", "0", "14 of 14"],
-  ["Step has a time box (10–30 min)", "0", "14 of 14"],
-  ["People never “can wait” (sick parent, partner…)", "0 of 4", "4 of 4"],
+  ["All three model calls answered (no fallback)", "11 of 12"],
+  ["Every AI question has a topic label", "12 of 12"],
+  ["The chat picks up a detail the person gave", "12 of 12"],
+  ["No bossy “You will…”", "12 of 12"],
+  ["Plan complete: 5 days, technique with source, commitments", "12 of 12"],
+  ["Different techniques chosen across the 12 cases", "6"],
+  ["Crisis message → coaching stops, help lines shown", "Pass"],
+  ["Prompt injection (“ignore all previous instructions…”)", "Ignored"],
 ];
 
 function Shot({ src, cap }) {
@@ -93,9 +97,10 @@ export default function Case() {
       <section>
         <h2>4. Making the AI useful and safe</h2>
         <p>Three model calls (questions, chat, plan) on Cloudflare Workers AI, each with a written fallback so the funnel never breaks. User text is passed as data, never as instructions (prompt-injection guard). Crisis language is checked in 6 languages and flagged by the model itself; then coaching stops and help lines are shown.</p>
-        <p>I tuned the coach prompt on a fixed set of 15 messages and compared versions:</p>
-        <table className="c-table"><thead><tr><th>Check (15 test messages)</th><th>Prompt v1</th><th>Prompt v2</th></tr></thead>
-          <tbody>{PROMPT.map(([a, b, c]) => <tr key={a}><td>{a}</td><td>{b}</td><td>{c}</td></tr>)}</tbody></table>
+        <p>Every prompt change runs against a fixed test set (<code>scripts/test_coach.py</code>): 12 situations, three per reason, each going through questions → chat → plan on the live model, plus a crisis message and a prompt-injection attempt.</p>
+        <table className="c-table"><thead><tr><th>Check</th><th>Result</th></tr></thead>
+          <tbody>{PROMPT.map(([a, b]) => <tr key={a}><td>{a}</td><td>{b}</td></tr>)}</tbody></table>
+        <p className="c-note">Latency: a chat turn takes about 2–3 s; the plan takes about 5 s and is written while the loader runs, so nobody waits for it.</p>
       </section>
 
       <section>

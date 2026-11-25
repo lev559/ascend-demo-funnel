@@ -572,11 +572,11 @@ const EXAMPLE_REVIEWS = [
   ["I was stuck on whether to change careers. The small tests made it obvious in two weeks.", "Daniel, 31"],
   ["Sunday check-ins are the only planning I actually stick to.", "Priya, 41"],
 ];
-// Real replies our coach model gave to test requests (scripts/coach_tests_v2.json)
+// Real replies our coach model gave to test requests (scripts/coach_tests.json)
 const REAL_REPLIES = [
-  ["theo", "My mom is sick, kids have exams and I haven't started the tax forms", "Your mom's health and the kids' exams are a lot to handle right now. Tonight is for your family; give the tax forms 20 minutes on Saturday morning."],
-  ["ines", "Moving flats Saturday, work deadline Friday, sister's birthday Sunday", "A move, a deadline, and your sister's birthday all at once. Tonight, spend 20 minutes on the deadline task, since it unlocks the rest; packing for the move can wait until tomorrow."],
-  ["max", "I keep postponing my portfolio for 3 weeks", "You've been putting off your portfolio for 3 weeks, that's a lot of delay. Tonight, 20 minutes on one project description; the design tweaks can wait until your deadline."],
+  ["nora", "Had a fight with my sister about who takes care of our dad and I said things I regret", "Hi Alex, I'm Nora. You're dealing with a tough situation after a fight with your sister about your dad's care. What's the first step you think you could take to start talking to her again?"],
+  ["ines", "4 years at the same job, I'm bored and can't tell if I should quit or study something new", "Hi Alex, I'm Ines. You're feeling stuck after 4 years at the same job. What's the first step you'd take if you decided to study something new?"],
+  ["max", "My manager criticised my work in front of the whole team today", "Hi Alex, I'm Max. You were criticised by your manager in front of the team, which is tough. What's the first thing you want to say to your manager when you talk it out?"],
 ];
 const FAQ = [
   ["Is this therapy?", "No. Your coach is an AI that helps with everyday decisions, habits and plans. If you're in crisis, it points you to real help lines."],

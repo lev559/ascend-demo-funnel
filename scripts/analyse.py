@@ -1,4 +1,4 @@
-"""Read-out of the five Duskwise experiments (funnel v2) from data/events.csv. SIMULATED DATA, not real users.
+"""Read-out of the five Duskwise experiments from data/events.csv. SIMULATED DATA, not real users.
 
 Unit = user (distinct_id). A user belongs to an experiment from their first $experiment_started for it.
 quiz-length, entry-mode and chat-length are exposed on the landing page (every visitor); paywall-model on the paywall;
