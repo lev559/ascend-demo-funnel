@@ -15,7 +15,7 @@ import base64, gzip, json, os, random, sys, time, urllib.error, urllib.request
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 CMD = sys.argv[1] if len(sys.argv) > 1 else "help"
 SEND = "--send" in sys.argv
-EU = os.environ.get("MIXPANEL_REGION", "eu") == "eu"
+EU = "eu" in os.environ.get("MIXPANEL_REGION", "eu")
 API = "https://api-eu.mixpanel.com" if EU else "https://api.mixpanel.com"
 APP = "https://eu.mixpanel.com" if EU else "https://mixpanel.com"
 
@@ -46,8 +46,9 @@ def lexicon():
         entries.append({"entityType": "event", "name": e["event"], "schemaJson": {
             "description": desc[:255], "properties": props,
             "metadata": {"com.mixpanel": {"tags": [e["category"]], "hidden": e["status"] == "deprecated"}}}})
-    for k, v in plan["profile_properties"].items():
-        entries.append({"entityType": "profile", "name": k, "schemaJson": {"description": v["description"] or k}})
+    entries.append({"entityType": "profile", "name": "$user", "schemaJson": {"description": "Quietly user (identified at the email step)", "properties": {
+        k: {"type": "string" if v["type"] in ("enum", "date") else v["type"], "description": v["description"] or ", ".join(v.get("enum", []))}
+        for k, v in plan["profile_properties"].items()}}})
     print(f"{len(entries)} Lexicon entries")
     if not SEND: return
     pid = os.environ["MIXPANEL_PROJECT_ID"]
@@ -60,7 +61,7 @@ def batches(path, n=2000, sample=None):
     b = []
     rnd = random.Random(7)
     keep = None
-    with open(path) as f:
+    with (gzip.open(path, "rt") if path.endswith(".gz") else open(path)) as f:
         for line in f:
             if sample:  # sample whole devices, so funnels stay intact
                 d = json.loads(line)["properties"].get("$device_id", "")
@@ -73,8 +74,9 @@ def batches(path, n=2000, sample=None):
 
 
 def events():
-    path = os.path.join(ROOT, "data", "v3", "events.ndjson")
-    total = sum(1 for _ in open(path))
+    path = sys.argv[sys.argv.index("--file") + 1] if "--file" in sys.argv else os.path.join(ROOT, "data", "v3", "events.ndjson")
+    opener = gzip.open if path.endswith(".gz") else open
+    total = sum(1 for _ in opener(path, "rt"))
     arg = lambda k, d: type(d)(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     sample_n = arg("--sample", 0)
     frac = min(1.0, sample_n / total) if sample_n else None
@@ -91,7 +93,7 @@ def events():
 
 
 def profiles():
-    path = os.path.join(ROOT, "data", "v3", "profiles.ndjson")
+    path = sys.argv[sys.argv.index("--file") + 1] if "--file" in sys.argv else os.path.join(ROOT, "data", "v3", "profiles.ndjson")
     rows = [json.loads(l) for l in open(path)]
     print(f"{len(rows):,} profiles")
     if not SEND: print("dry run, add --send"); return

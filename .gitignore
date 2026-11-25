@@ -11,3 +11,5 @@ Claude outputs/
 data/v3/events.ndjson
 data/v3/profiles.ndjson
 data/v3/events.parquet
+data/v3/sample_dev.ndjson.gz
+data/v3/profiles_dev.ndjson

@@ -13,6 +13,9 @@ const EVENTS = ["checkout.session.completed", "invoice.paid", "invoice.payment_f
 const usd = (cents) => Math.round(cents || 0) / 100;
 const REASON = { too_expensive: "too_expensive", unused: "not_using", low_quality: "not_helpful", missing_features: "not_helpful" };
 
+// Newer Stripe API versions (2025-03-31+) moved invoice.subscription to invoice.parent.subscription_details
+const subOf = (inv) => inv.subscription || inv.parent?.subscription_details?.subscription || null;
+
 function who(meta = {}) { return { userId: meta.user_id, deviceId: meta.device_id }; }
 function subProps(meta = {}, subscriptionId) {
   return { plan: meta.plan, subscription_id: subscriptionId, paywall_model: meta.paywall_model, ...(meta.exp ? JSON.parse(meta.exp) : {}) };
@@ -41,17 +44,17 @@ export async function POST(req) {
     }
   }
 
-  if (evt.type === "invoice.paid" && o.billing_reason === "subscription_cycle" && o.amount_paid > 0) {
-    const sub = await stripe.subscriptions.retrieve(o.subscription); const m = sub.metadata || {};
-    const paid = await stripe.invoices.list({ subscription: o.subscription, status: "paid", limit: 100 });
+  if (evt.type === "invoice.paid" && o.billing_reason === "subscription_cycle" && o.amount_paid > 0 && subOf(o)) {
+    const sub = await stripe.subscriptions.retrieve(subOf(o)); const m = sub.metadata || {};
+    const paid = await stripe.invoices.list({ subscription: sub.id, status: "paid", limit: 100 });
     const period = paid.data.filter((x) => x.amount_paid > 0).length;
     const wasTrial = Boolean(sub.trial_end) && period === 1;
     await serverTrack(wasTrial ? "trial_converted" : "subscription_renewed", who(m), { ...subProps(m, sub.id), revenue: usd(o.amount_paid), ...(wasTrial ? {} : { period }) }, iid);
     await serverProfile(m.user_id, { set: { subscription_status: "active" }, add: { ltv_usd: usd(o.amount_paid), periods_paid: 1 } });
   }
 
-  if (evt.type === "invoice.payment_failed" && o.subscription) {
-    const sub = await stripe.subscriptions.retrieve(o.subscription); const m = sub.metadata || {};
+  if (evt.type === "invoice.payment_failed" && subOf(o)) {
+    const sub = await stripe.subscriptions.retrieve(subOf(o)); const m = sub.metadata || {};
     await serverTrack("payment_failed", who(m), { ...subProps(m, sub.id), attempt: o.attempt_count || 1 }, iid);
     await serverProfile(m.user_id, { set: { subscription_status: "past_due" } });
   }
@@ -70,9 +73,11 @@ export async function POST(req) {
 
   if (evt.type === "charge.refunded") {
     let m = o.metadata || {};
-    if (!m.user_id && o.invoice) {
-      const inv = await stripe.invoices.retrieve(o.invoice);
-      if (inv.subscription) m = (await stripe.subscriptions.retrieve(inv.subscription)).metadata || {};
+    if (!m.user_id && o.payment_intent) {   // upsell: metadata is on the payment intent
+      const pi = await stripe.paymentIntents.retrieve(o.payment_intent); m = pi.metadata || {};
+    }
+    if (!m.user_id && o.customer) {          // subscription charge: newest subscription of this customer
+      const subs = await stripe.subscriptions.list({ customer: o.customer, status: "all", limit: 1 }); m = subs.data[0]?.metadata || {};
     }
     const amount = usd(o.amount_refunded);
     await serverTrack("refund_issued", who(m), { plan: m.plan, amount, reason: { fraudulent: "fraud", duplicate: "duplicate" }[o.refunds?.data?.[0]?.reason] || "requested" }, iid);
