@@ -39,7 +39,12 @@ export default function Funnel() {
   useEffect(() => {
     // /?fresh=1 (linked from the case page) starts over: clears saved progress and the intro-price timer
     if (new URLSearchParams(window.location.search).has("fresh")) {
-      try { ["dw_state", "dw_offer_deadline"].forEach((k) => localStorage.removeItem(k)); sessionStorage.clear(); } catch {}
+      try {
+        ["dw_state", "dw_offer_deadline"].forEach((k) => localStorage.removeItem(k));
+        const keep = ["duskwise_angle", "dw_case"].map((k) => [k, sessionStorage.getItem(k)]);
+        sessionStorage.clear();
+        keep.forEach(([k, val]) => val && sessionStorage.setItem(k, val));
+      } catch {}
       window.history.replaceState(null, "", window.location.pathname);
     }
     const st = loadState();
@@ -239,7 +244,12 @@ export default function Funnel() {
 function useEffectOnce(fn) { const done = useRef(false); useEffect(() => { if (!done.current) { done.current = true; fn(); } }, []); }
 
 function Legal() {
-  return <footer className="legal"><a href="/terms">Terms</a>·<a href="/privacy">Privacy</a>·<a href="/subscription">Manage subscription</a>·<a href="/case">How this was built</a></footer>;
+  // Visitors who came from the general case page (?case=open) get linked back to it
+  const [caseHref, setCaseHref] = useState("/case");
+  useEffect(() => {
+    try { if (sessionStorage.getItem("dw_case") === "open") setCaseHref("/case-study"); } catch {}
+  }, []);
+  return <footer className="legal"><a href="/terms">Terms</a>·<a href="/privacy">Privacy</a>·<a href="/subscription">Manage subscription</a>·<a href={caseHref}>How this was built</a></footer>;
 }
 
 /* ---------- Write (entry-mode experiment: free text first vs tap a typical situation first) ---------- */

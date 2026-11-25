@@ -30,6 +30,7 @@ export default function Providers({ children }) {
   useEffect(() => {
     const id = getUserId();
     const angle = readAngle();
+    try { if (new URLSearchParams(window.location.search).get("case") === "open") sessionStorage.setItem("dw_case", "open"); } catch {}
     const p = new URLSearchParams(window.location.search);
     const utm = { utm_source: p.get("utm_source") || "direct", utm_campaign: p.get("utm_campaign") || "none" };
     initAnalytics(id, { angle, ...utm });
