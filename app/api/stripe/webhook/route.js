@@ -22,7 +22,7 @@ function subProps(meta = {}, subscriptionId) {
 }
 
 export async function POST(req) {
-  const key = process.env.STRIPE_SECRET_KEY, secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const key = process.env.STRIPE_SECRET_KEY?.trim(), secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
   if (!key?.startsWith("sk_test_") || !secret) return new Response("webhook not configured", { status: 503 });
   const stripe = new Stripe(key);
   let evt;

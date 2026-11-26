@@ -41,7 +41,7 @@ export default function Funnel() {
     if (new URLSearchParams(window.location.search).has("fresh")) {
       try {
         ["dw_state", "dw_offer_deadline"].forEach((k) => localStorage.removeItem(k));
-        const keep = ["quietly_angle", "dw_case"].map((k) => [k, sessionStorage.getItem(k)]);
+        const keep = ["quietly_angle", "dw_case", "dw_exp"].map((k) => [k, sessionStorage.getItem(k)]);
         sessionStorage.clear();
         keep.forEach(([k, val]) => val && sessionStorage.setItem(k, val));
       } catch {}
